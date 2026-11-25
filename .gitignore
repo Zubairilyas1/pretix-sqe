@@ -28,3 +28,11 @@ node_modules/
 .vite/
 
 
+
+.venv/
+.pytest_cache/
+*.log
+htmlcov/
+.mutmut-cache/
+.coverage*
+

@@ -6,9 +6,9 @@
 **Baseline Commit Hash:** `c0d887738b6cd97f724b926718c55e2ae87c9901`  
 **License:** GNU AGPL v3.0 (with pretix commercial exceptions)  
 **Team Members & Roles:**
-1. **Zubair (User / Member 1):** Area 1 — Static Analysis, White-Box Unit Testing, Mutation Testing, CI/CD Quality Gate
-2. **Sami (Member 2):** Area 2 — OpenAPI Specification, Automated Test Data Generator, API & Integration Testing
-3. **Tawassul (Member 3):** Area 3 — Use Case Specification & Playwright E2E Automation, Usability/Accessibility, Defensive Security, Performance & Recovery Testing
+1. **Zubair (User / Member 1):** Area 1 — White-Box Unit Testing (100% Statement & Branch Coverage), Multiple Condition Coverage (MCC) & MC/DC Pairs, Mutation Testing (`mutmut`, 2 Custom Operators, 15 Surviving Mutants Analysis), GitHub Actions CI/CD Quality Gate (1 blocked PR, 1 passing bugfix PR)
+2. **Sami (Member 2):** Area 2 — OpenAPI Specification, Automated Test Data Generator, API & Integration Testing, Cross-Workflow State Verification
+3. **Tawassul (Member 3):** Area 3 — Static Analysis & SonarQube Metrics, Control Flow Graph (CFG) & Hand-Calculated Cyclomatic Complexity, Use Case Specification & Playwright E2E Automation, Usability/Accessibility (Lighthouse + axe-core), Defensive Security (RBAC + ZAP + pip-audit), Performance (k6) & Recovery Testing
 - **Shared across All 3 Members:** Test Management (Test Plan, 3-Point Estimation, 5×5 Risk Register, Traceability Matrix, Defect Tracking with 5 Whys + Fishbone, Pareto Analysis, GQM Weekly Progress, Test Completion Report).
 
 ---
