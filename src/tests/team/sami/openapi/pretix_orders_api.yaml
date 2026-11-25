@@ -84,13 +84,11 @@ paths:
       - {name: quota_id, in: path, required: true, schema: {type: integer}}
     get:
       operationId: getQuota
-      tags: [W1-organizer, shared-record]
-      parameters:
-        - name: with_availability
-          in: query
-          required: false
-          description: When "true", the response includes available and available_number.
-          schema: {type: string, enum: ['true', 'false']}
+      tags: [W1-organizer]
+      description: |
+        Note (weakness W-06): ?with_availability=true is only honoured by the
+        list endpoint. On this detail endpoint the availability fields are
+        silently omitted; use getQuotaAvailability instead.
       responses:
         '200': {description: Quota, content: {application/json: {schema: {$ref: '#/components/schemas/Quota'}}}}
         '404': {$ref: '#/components/responses/NotFound'}
@@ -104,6 +102,19 @@ paths:
         '200': {description: Quota updated, content: {application/json: {schema: {$ref: '#/components/schemas/Quota'}}}}
         '400': {$ref: '#/components/responses/ValidationError'}
         '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+
+  /organizers/{organizer}/events/{event}/quotas/{quota_id}/availability/:
+    parameters:
+      - $ref: '#/components/parameters/Organizer'
+      - $ref: '#/components/parameters/Event'
+      - {name: quota_id, in: path, required: true, schema: {type: integer}}
+    get:
+      operationId: getQuotaAvailability
+      tags: [shared-record]
+      description: Read-back of the shared record used after every W1/W2 step.
+      responses:
+        '200': {description: Availability breakdown, content: {application/json: {schema: {$ref: '#/components/schemas/QuotaAvailability'}}}}
         '404': {$ref: '#/components/responses/NotFound'}
 
   /organizers/{organizer}/events/{event}/cartpositions/:
@@ -272,7 +283,10 @@ components:
       properties:
         name:
           type: object
-          description: Localised name; at least the "en" key.
+          description: |
+            Localised name; at least the "en" key. pretix also accepts a plain
+            string as shorthand for the default locale (i18n field behaviour),
+            so a string is NOT a wrong type here; a number is.
           required: [en]
           properties:
             en: {type: string, minLength: 1, maxLength: 255}
@@ -295,7 +309,7 @@ components:
 
     QuotaCreate:
       type: object
-      required: [name, items]
+      required: [name]
       properties:
         name: {type: string, minLength: 1, maxLength: 200}
         size:
@@ -308,6 +322,7 @@ components:
         items:
           type: array
           items: {type: integer}
+          description: Optional in pretix (a quota may be created first and products attached later).
         closed: {type: boolean}
       example:
         name: "Main Hall"
@@ -331,14 +346,14 @@ components:
         cart_id:
           type: string
           pattern: '^.*@api$'
-          description: Must end in "@api" or be omitted.
+          nullable: true
+          description: Must end in "@api". Omitted or null -> the server generates one.
         price:
           type: number
           format: decimal
           minimum: 0
           maximum: 99999999999.99
           multipleOf: 0.01
-          nullable: true
       example:
         item: "{{item_id}}"
         cart_id: "sqe-cart@api"
@@ -374,10 +389,10 @@ components:
           format: email
           maxLength: 254
           nullable: true
-        locale: {type: string, enum: [en]}
+        locale: {type: string, enum: [en], nullable: true, description: null -> event default locale}
         payment_provider: {type: string, nullable: true}
         testmode: {type: boolean}
-        send_email: {type: boolean}
+        send_email: {type: boolean, nullable: true, description: null -> event e-mail setting decides}
         positions:
           type: array
           minItems: 1
@@ -390,7 +405,7 @@ components:
       example:
         email: "buyer@example.org"
         locale: "en"
-        payment_provider: "banktransfer"
+        payment_provider: "manual"
         send_email: false
         positions:
           - item: "{{item_id}}"
@@ -423,8 +438,22 @@ components:
         size: {type: integer, nullable: true}
         items: {type: array, items: {type: integer}}
         closed: {type: boolean}
-        available: {type: boolean, description: "Only with ?with_availability=true"}
-        available_number: {type: integer, nullable: true, description: "Only with ?with_availability=true"}
+        available: {type: boolean, description: "Only on the list endpoint with ?with_availability=true"}
+        available_number: {type: integer, nullable: true, description: "Only on the list endpoint with ?with_availability=true"}
+
+    QuotaAvailability:
+      type: object
+      required: [paid_orders, pending_orders, cart_positions, available_number, available, total_size]
+      properties:
+        paid_orders: {type: integer}
+        pending_orders: {type: integer}
+        exited_orders: {type: integer}
+        blocking_vouchers: {type: integer}
+        cart_positions: {type: integer}
+        waiting_list: {type: integer}
+        available_number: {type: integer, nullable: true}
+        available: {type: boolean}
+        total_size: {type: integer, nullable: true}
 
     CartPosition:
       type: object
