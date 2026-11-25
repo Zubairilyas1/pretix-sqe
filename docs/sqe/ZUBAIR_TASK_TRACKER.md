@@ -15,8 +15,8 @@
 | :---: | :--- | :--- | :---: | :--- |
 | **M1** | Environment & Test Fixtures Setup | `feat-zubair-fixtures` | ✅ COMPLETED | `conftest.py`, sample Event, Item, Quota fixtures |
 | **M2** | White-Box Unit Tests: Quota Boundary (Rule 1) | `feat-zubair-quota-rules` | ✅ COMPLETED | 100% statement/branch coverage on `QuotaAvailability` |
-| **M3** | White-Box Unit Tests: Order State Machine (Rule 3) | `feat-zubair-order-rules` | 🔄 IN PROGRESS | Order lifecycle transitions & invalid transition guards |
-| **M4** | MCC Truth Table (16-row) & MC/DC Pairs (Rule 2) | `zubair/feat-mcc-mcdc-tests` | ⏳ PENDING | Item availability boolean independence tests |
+| **M3** | White-Box Unit Tests: Order State Machine (Rule 3) | `feat-zubair-order-rules` | ✅ COMPLETED | Order lifecycle transitions & invalid transition guards |
+| **M4** | MCC Truth Table (16-row) & MC/DC Pairs (Rule 2) | `feat-zubair-mcc-mcdc` | 🔄 IN PROGRESS | Item availability boolean independence tests |
 | **M5** | Cart Expiration & Quota Release (Rule 4) | `zubair/feat-whitebox-cart-rules` | ⏳ PENDING | 30-min cart reservation expiration tests |
 | **M6** | Mutation Testing (`mutmut`) & Custom Mutators | `zubair/feat-mutation-mutmut` | ⏳ PENDING | Baseline score, 2 custom operators, 15 surviving mutant analysis |
 | **M7** | GitHub Actions CI Quality Gate | `zubair/feat-ci-quality-gate` | ⏳ PENDING | Blocking pipeline, 1 blocked PR, 1 passing bugfix PR |
@@ -55,13 +55,17 @@
 ---
 
 ### Milestone 3: White-Box Unit Tests — Order State Machine (Rule 3)
-- **Branch:** `zubair/feat-whitebox-order-rules`
-- [ ] Subtask 3.1: Valid transition: `PENDING` $\rightarrow$ `PAID`.
-- [ ] Subtask 3.2: Valid transition: `PENDING` $\rightarrow$ `CANCELED`.
-- [ ] Subtask 3.3: Valid transition: `PAID` $\rightarrow$ `REFUNDED`.
-- [ ] Subtask 3.4: Invalid transition: `CANCELED` $\centernot\rightarrow$ `PAID` (Assert `can_be_paid() == False`).
-- [ ] Subtask 3.5: Invalid transition: `REFUNDED` $\centernot\rightarrow$ `PAID`.
-- **Outcome / Evidence:** *(Pending execution)*
+- **Branch:** `feat-zubair-order-rules` (Merged into `zubair`)
+- [x] Subtask 3.1: Valid transition: `PENDING` $\rightarrow$ `PAID` (`_can_be_paid() == True`).
+- [x] Subtask 3.2: Valid transition: `PENDING` $\rightarrow$ `CANCELED` (proper timestamping).
+- [x] Subtask 3.3: Valid transition: `PAID` $\rightarrow$ `REFUNDED`.
+- [x] Subtask 3.4: Invalid transition: `CANCELED` $\centernot\rightarrow$ `PAID` (Assert rejected with error message).
+- [x] Subtask 3.5: Invalid transition: `REFUNDED` $\centernot\rightarrow$ `PAID`.
+- [x] Subtask 3.6: Unapproved order cannot be paid without organizer authorization (`require_approval=True`).
+- [x] Subtask 3.7: Admin override check: `force=True` parameter successfully bypasses approval check.
+- **Outcome / Evidence:**
+  - Test command: `.venv\Scripts\pytest.exe src\tests\team\zubair\test_whitebox_order_rules.py`
+  - Output: `7 passed in 1.30s` (Commit: `07adde442`).
 
 ---
 
