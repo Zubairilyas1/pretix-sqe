@@ -20,7 +20,7 @@
 | **M5** | Cart Expiration & Quota Release (Rule 4) | `feat-zubair-cart-rules` | ✅ COMPLETED | 30-min cart reservation expiration tests |
 | **M6** | Mutation Testing (`mutmut`) & Custom Mutators | `feat-zubair-mutation-mutmut` | ✅ COMPLETED | Baseline score, 2 custom operators, 15 surviving mutant analysis |
 | **M7** | GitHub Actions CI Quality Gate | `feat-zubair-ci-gate` | ✅ COMPLETED | Blocking pipeline, 1 blocked PR, 1 passing bugfix PR |
-| **M8** | Viva Defense Package & AI-Use Log | `zubair` | 🔄 IN PROGRESS | Viva questions, live code change proof, AI disclosure log |
+| **M8** | Viva Defense Package & AI-Use Log | `zubair` | ✅ COMPLETED | Viva questions, live code change proof, AI disclosure log |
 
 ---
 
@@ -125,5 +125,8 @@
 
 ### Milestone 8: Viva Defense & AI-Use Log
 - **Branch:** `zubair`
-- [ ] Subtask 8.1: Complete AI-use disclosure log with all prompts and outputs.
-- [ ] Subtask 8.2: Practice live boundary code inversion task for the viva.
+- [x] Subtask 8.1: Complete AI-use disclosure log with all prompts and outputs in `docs/sqe/AI_USE_DISCLOSURE_LOG.md`.
+- [x] Subtask 8.2: Practice live boundary code inversion task for the viva.
+- **Outcome / Evidence:**
+  - Full disclosure log recorded adhering strictly to academic integrity guidelines.
+  - Live task prediction scripts and defense answers prepared.
