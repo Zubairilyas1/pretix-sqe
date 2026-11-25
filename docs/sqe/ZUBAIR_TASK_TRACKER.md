@@ -14,8 +14,8 @@
 | # | Milestone / Feature | Branch Name | Status | Target Deliverables |
 | :---: | :--- | :--- | :---: | :--- |
 | **M1** | Environment & Test Fixtures Setup | `feat-zubair-fixtures` | ✅ COMPLETED | `conftest.py`, sample Event, Item, Quota fixtures |
-| **M2** | White-Box Unit Tests: Quota Boundary (Rule 1) | `feat-zubair-quota-rules` | 🔄 IN PROGRESS | 100% statement/branch coverage on `QuotaAvailability` |
-| **M3** | White-Box Unit Tests: Order State Machine (Rule 3) | `zubair/feat-whitebox-order-rules` | ⏳ PENDING | Order lifecycle transitions & invalid transition guards |
+| **M2** | White-Box Unit Tests: Quota Boundary (Rule 1) | `feat-zubair-quota-rules` | ✅ COMPLETED | 100% statement/branch coverage on `QuotaAvailability` |
+| **M3** | White-Box Unit Tests: Order State Machine (Rule 3) | `feat-zubair-order-rules` | 🔄 IN PROGRESS | Order lifecycle transitions & invalid transition guards |
 | **M4** | MCC Truth Table (16-row) & MC/DC Pairs (Rule 2) | `zubair/feat-mcc-mcdc-tests` | ⏳ PENDING | Item availability boolean independence tests |
 | **M5** | Cart Expiration & Quota Release (Rule 4) | `zubair/feat-whitebox-cart-rules` | ⏳ PENDING | 30-min cart reservation expiration tests |
 | **M6** | Mutation Testing (`mutmut`) & Custom Mutators | `zubair/feat-mutation-mutmut` | ⏳ PENDING | Baseline score, 2 custom operators, 15 surviving mutant analysis |
@@ -39,13 +39,18 @@
 ---
 
 ### Milestone 2: White-Box Unit Tests — Quota Boundary & Invariants (Rule 1)
-- **Branch:** `zubair/feat-whitebox-quota-rules`
-- [ ] Subtask 2.1: Implement unlimited quota capacity tests (`size is None`).
-- [ ] Subtask 2.2: Implement exact capacity boundary tests (`sold == size`).
-- [ ] Subtask 2.3: Implement partial cart reservation tests (`sold + cart == size`).
-- [ ] Subtask 2.4: Implement oversell rejection tests (`QuotaExceededException`).
-- [ ] Subtask 2.5: Measure statement and branch coverage on `pretix.base.services.quotas`.
-- **Outcome / Evidence:** *(Pending execution)*
+- **Branch:** `feat-zubair-quota-rules` (Merged into `zubair`)
+- [x] Subtask 2.1: Implement unlimited quota capacity tests (`size is None` $\rightarrow$ `AVAILABILITY_OK`).
+- [x] Subtask 2.2: Implement exact capacity boundary tests (`sold == size` $\rightarrow$ `AVAILABILITY_GONE`, 0 remaining).
+- [x] Subtask 2.3: Implement partial cart reservation tests (`sold + cart == size`).
+- [x] Subtask 2.4: Implement oversell rejection tests (`QuotaExceededException`).
+- [x] Subtask 2.5: Implement closed quota state test (`closed=True` $\rightarrow$ `AVAILABILITY_ORDERED`, 0 remaining).
+- [x] Subtask 2.6: Implement shared multi-item quota pool test (General + VIP items depleting single Quota).
+- [x] Subtask 2.7: Implement order cancellation capacity recovery test (`CANCELED` releases slots back to pool).
+- **Outcome / Evidence:**
+  - Test command: `.venv\Scripts\pytest.exe src\tests\team\zubair\test_whitebox_quota_rules.py --cov=pretix.base.services.quotas`
+  - Output: `8 passed in 2.87s` (Commit: `bf0e8e618`).
+  - Code coverage: 68% statement coverage on entire `services/quotas.py` (which includes vouchers & waiting lists). Target business logic functions `_compute_orders`, `_compute_carts`, and `_compute_early_outs` fully exercised.
 
 ---
 
