@@ -1,0 +1,468 @@
+openapi: 3.0.3
+info:
+  title: pretix Ticketing & Order API (SQE Area 2 test basis)
+  version: "1.0.0-sqe"
+  description: |
+    Hand-written specification of the pretix REST endpoints used by the two
+    selected workflows. Written by Sami (Member 2) from the source code at
+    upstream commit c0d887738b6cd97f724b926718c55e2ae87c9901:
+      - src/pretix/api/urls.py
+      - src/pretix/api/serializers/{item,cart,order}.py
+      - src/pretix/api/views/{item,cart,order}.py
+      - src/pretix/base/models/{items,orders}.py
+
+    Workflow 1 (organizer): create item, create/patch quota.
+    Workflow 2 (customer purchase, driven through the API): reserve cart
+    position, place order, change order state.
+    Shared record: Quota (size written by W1, available_number consumed by W2).
+
+    Constraint sources and assumptions:
+      * Numeric/length limits are copied from model and serializer fields.
+      * Item.default_price minimum 0.00 is a JUSTIFIED ASSUMPTION (a ticket
+        price cannot be negative); the model has no validator for it.
+      * x-business-limit marks limits that depend on runtime data (quota
+        availability) rather than a fixed number.
+
+    The test data generator (../generator/generate_test_data.py) reads every
+    request schema below. Each request schema carries an `example`, which is
+    the valid baseline payload; the generator varies one field at a time.
+    Placeholders like "{{item_id}}" are filled in by the tests at runtime.
+servers:
+  - url: http://localhost:8000/api/v1
+security:
+  - TokenAuth: []
+
+paths:
+  /organizers/{organizer}/events/{event}/items/:
+    parameters:
+      - $ref: '#/components/parameters/Organizer'
+      - $ref: '#/components/parameters/Event'
+    get:
+      operationId: listItems
+      tags: [W1-organizer]
+      responses:
+        '200': {description: Paginated item list, content: {application/json: {schema: {$ref: '#/components/schemas/PaginatedItems'}}}}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+    post:
+      operationId: createItem
+      tags: [W1-organizer]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/ItemCreate'}}}
+      responses:
+        '201': {description: Item created, content: {application/json: {schema: {$ref: '#/components/schemas/Item'}}}}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+
+  /organizers/{organizer}/events/{event}/quotas/:
+    parameters:
+      - $ref: '#/components/parameters/Organizer'
+      - $ref: '#/components/parameters/Event'
+    get:
+      operationId: listQuotas
+      tags: [W1-organizer]
+      responses:
+        '200': {description: Paginated quota list, content: {application/json: {schema: {$ref: '#/components/schemas/PaginatedQuotas'}}}}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+    post:
+      operationId: createQuota
+      tags: [W1-organizer]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/QuotaCreate'}}}
+      responses:
+        '201': {description: Quota created, content: {application/json: {schema: {$ref: '#/components/schemas/Quota'}}}}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+
+  /organizers/{organizer}/events/{event}/quotas/{quota_id}/:
+    parameters:
+      - $ref: '#/components/parameters/Organizer'
+      - $ref: '#/components/parameters/Event'
+      - {name: quota_id, in: path, required: true, schema: {type: integer}}
+    get:
+      operationId: getQuota
+      tags: [W1-organizer, shared-record]
+      parameters:
+        - name: with_availability
+          in: query
+          required: false
+          description: When "true", the response includes available and available_number.
+          schema: {type: string, enum: ['true', 'false']}
+      responses:
+        '200': {description: Quota, content: {application/json: {schema: {$ref: '#/components/schemas/Quota'}}}}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      operationId: patchQuota
+      tags: [W1-organizer]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/QuotaPatch'}}}
+      responses:
+        '200': {description: Quota updated, content: {application/json: {schema: {$ref: '#/components/schemas/Quota'}}}}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+
+  /organizers/{organizer}/events/{event}/cartpositions/:
+    parameters:
+      - $ref: '#/components/parameters/Organizer'
+      - $ref: '#/components/parameters/Event'
+    get:
+      operationId: listCartPositions
+      tags: [W2-purchase]
+      responses:
+        '200': {description: API cart positions (cart_id ending in @api)}
+    post:
+      operationId: createCartPosition
+      tags: [W2-purchase]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/CartPositionCreate'}}}
+      responses:
+        '201': {description: Cart position created, content: {application/json: {schema: {$ref: '#/components/schemas/CartPosition'}}}}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+
+  /organizers/{organizer}/events/{event}/cartpositions/{id}/:
+    parameters:
+      - $ref: '#/components/parameters/Organizer'
+      - $ref: '#/components/parameters/Event'
+      - {name: id, in: path, required: true, schema: {type: integer}}
+    delete:
+      operationId: deleteCartPosition
+      tags: [W2-purchase]
+      responses:
+        '204': {description: "Cart position removed; quota released"}
+        '404': {$ref: '#/components/responses/NotFound'}
+
+  /organizers/{organizer}/events/{event}/orders/:
+    parameters:
+      - $ref: '#/components/parameters/Organizer'
+      - $ref: '#/components/parameters/Event'
+    get:
+      operationId: listOrders
+      tags: [W2-purchase]
+      responses:
+        '200': {description: Paginated order list}
+    post:
+      operationId: createOrder
+      tags: [W2-purchase]
+      parameters:
+        - name: X-Idempotency-Key
+          in: header
+          required: false
+          description: Repeating a request with the same key returns the first response and creates nothing new.
+          schema: {type: string}
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/OrderCreate'}}}
+      responses:
+        '201': {description: Order created, content: {application/json: {schema: {$ref: '#/components/schemas/Order'}}}}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '409': {description: A request with the same idempotency key is still being processed}
+
+  /organizers/{organizer}/events/{event}/orders/{code}/:
+    parameters:
+      - $ref: '#/components/parameters/Organizer'
+      - $ref: '#/components/parameters/Event'
+      - $ref: '#/components/parameters/OrderCode'
+    get:
+      operationId: getOrder
+      tags: [W2-purchase]
+      responses:
+        '200': {description: Order, content: {application/json: {schema: {$ref: '#/components/schemas/Order'}}}}
+        '404': {$ref: '#/components/responses/NotFound'}
+
+  # ---- Order state machine (Business Rule 3) ----
+  /organizers/{organizer}/events/{event}/orders/{code}/mark_paid/:
+    parameters: [{$ref: '#/components/parameters/Organizer'}, {$ref: '#/components/parameters/Event'}, {$ref: '#/components/parameters/OrderCode'}]
+    post:
+      operationId: markOrderPaid
+      tags: [W2-state]
+      description: Allowed from n (pending) and e (expired). Otherwise 400 "The order is not pending or expired."
+      requestBody: {required: false, content: {application/json: {schema: {$ref: '#/components/schemas/OrderAction'}}}}
+      responses:
+        '200': {description: Order now paid, content: {application/json: {schema: {$ref: '#/components/schemas/Order'}}}}
+        '400': {$ref: '#/components/responses/Detail'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /organizers/{organizer}/events/{event}/orders/{code}/mark_canceled/:
+    parameters: [{$ref: '#/components/parameters/Organizer'}, {$ref: '#/components/parameters/Event'}, {$ref: '#/components/parameters/OrderCode'}]
+    post:
+      operationId: markOrderCanceled
+      tags: [W2-state]
+      description: Allowed from n, p, e (Order.cancel_allowed). Releases quota.
+      requestBody: {required: false, content: {application/json: {schema: {$ref: '#/components/schemas/OrderAction'}}}}
+      responses:
+        '200': {description: Order now canceled, content: {application/json: {schema: {$ref: '#/components/schemas/Order'}}}}
+        '400': {$ref: '#/components/responses/Detail'}
+  /organizers/{organizer}/events/{event}/orders/{code}/mark_expired/:
+    parameters: [{$ref: '#/components/parameters/Organizer'}, {$ref: '#/components/parameters/Event'}, {$ref: '#/components/parameters/OrderCode'}]
+    post:
+      operationId: markOrderExpired
+      tags: [W2-state]
+      description: Allowed from n only.
+      responses:
+        '200': {description: Order now expired, content: {application/json: {schema: {$ref: '#/components/schemas/Order'}}}}
+        '400': {$ref: '#/components/responses/Detail'}
+  /organizers/{organizer}/events/{event}/orders/{code}/mark_pending/:
+    parameters: [{$ref: '#/components/parameters/Organizer'}, {$ref: '#/components/parameters/Event'}, {$ref: '#/components/parameters/OrderCode'}]
+    post:
+      operationId: markOrderPending
+      tags: [W2-state]
+      description: Allowed from p only.
+      responses:
+        '200': {description: Order now pending, content: {application/json: {schema: {$ref: '#/components/schemas/Order'}}}}
+        '400': {$ref: '#/components/responses/Detail'}
+  /organizers/{organizer}/events/{event}/orders/{code}/mark_refunded/:
+    parameters: [{$ref: '#/components/parameters/Organizer'}, {$ref: '#/components/parameters/Event'}, {$ref: '#/components/parameters/OrderCode'}]
+    post:
+      operationId: markOrderRefunded
+      tags: [W2-state]
+      description: Allowed from p only.
+      responses:
+        '200': {description: Order refunded, content: {application/json: {schema: {$ref: '#/components/schemas/Order'}}}}
+        '400': {$ref: '#/components/responses/Detail'}
+  /organizers/{organizer}/events/{event}/orders/{code}/reactivate/:
+    parameters: [{$ref: '#/components/parameters/Organizer'}, {$ref: '#/components/parameters/Event'}, {$ref: '#/components/parameters/OrderCode'}]
+    post:
+      operationId: reactivateOrder
+      tags: [W2-state]
+      description: Allowed from c only; re-consumes quota.
+      responses:
+        '200': {description: Order reactivated, content: {application/json: {schema: {$ref: '#/components/schemas/Order'}}}}
+        '400': {$ref: '#/components/responses/Detail'}
+
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Team API token, sent as "Token <token>".'
+
+  parameters:
+    Organizer: {name: organizer, in: path, required: true, schema: {type: string}}
+    Event: {name: event, in: path, required: true, schema: {type: string}}
+    OrderCode: {name: code, in: path, required: true, schema: {type: string}}
+
+  responses:
+    ValidationError:
+      description: Field or business-rule validation failed. Body maps field names to error lists.
+      content: {application/json: {schema: {type: object}}}
+    Detail:
+      description: Action not allowed in the current state.
+      content: {application/json: {schema: {type: object, required: [detail], properties: {detail: {type: string}}}}}
+    Unauthorized:
+      description: No or invalid credentials.
+    Forbidden:
+      description: Token lacks the required permission.
+    NotFound:
+      description: Object does not exist in this event.
+
+  schemas:
+    # ---------------- Workflow 1 requests ----------------
+    ItemCreate:
+      type: object
+      required: [name, default_price]
+      properties:
+        name:
+          type: object
+          description: Localised name; at least the "en" key.
+          required: [en]
+          properties:
+            en: {type: string, minLength: 1, maxLength: 255}
+        default_price:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 99999999999.99
+          multipleOf: 0.01
+          description: Decimal(13,2). Minimum 0.00 is a justified assumption (no negative prices).
+        active: {type: boolean}
+        min_per_order: {type: integer, minimum: 0, nullable: true}
+        max_per_order: {type: integer, minimum: 0, nullable: true}
+        admission: {type: boolean}
+      example:
+        name: {en: "General Admission"}
+        default_price: "50.00"
+        active: true
+        admission: true
+
+    QuotaCreate:
+      type: object
+      required: [name, items]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 200}
+        size:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 2147483647
+          nullable: true
+          description: Capacity. null = unlimited. Shared record written by Workflow 1.
+        items:
+          type: array
+          items: {type: integer}
+        closed: {type: boolean}
+      example:
+        name: "Main Hall"
+        size: 10
+        items: ["{{item_id}}"]
+
+    QuotaPatch:
+      type: object
+      properties:
+        size: {type: integer, format: int32, minimum: 0, maximum: 2147483647, nullable: true}
+        closed: {type: boolean}
+      example:
+        size: 10
+
+    # ---------------- Workflow 2 requests ----------------
+    CartPositionCreate:
+      type: object
+      required: [item]
+      properties:
+        item: {type: integer}
+        cart_id:
+          type: string
+          pattern: '^.*@api$'
+          description: Must end in "@api" or be omitted.
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 99999999999.99
+          multipleOf: 0.01
+          nullable: true
+      example:
+        item: "{{item_id}}"
+        cart_id: "sqe-cart@api"
+        price: "50.00"
+      x-business-limit:
+        description: Business Rule 1 - a reservation is refused when the item's quota has no available_number left.
+        quantity-source: quota.available_number
+
+    OrderPositionCreate:
+      type: object
+      required: [item]
+      properties:
+        item: {type: integer}
+        price: {type: number, format: decimal, nullable: true}
+        attendee_name: {type: string, nullable: true}
+
+    OrderCreate:
+      type: object
+      required: [positions]
+      properties:
+        code:
+          type: string
+          minLength: 5
+          maxLength: 16
+          pattern: '^[ABCDEFGHJKLMNPQRSTUVWXYZ1234567890]+$'
+          description: Optional. Must be unique within the organizer.
+        status:
+          type: string
+          enum: [n, p]
+          description: n = pending, p = paid.
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          nullable: true
+        locale: {type: string, enum: [en]}
+        payment_provider: {type: string, nullable: true}
+        testmode: {type: boolean}
+        send_email: {type: boolean}
+        positions:
+          type: array
+          minItems: 1
+          maxItems: 500
+          items: {$ref: '#/components/schemas/OrderPositionCreate'}
+          description: PRETIX_MAX_ORDER_SIZE = 500.
+          x-business-limit:
+            description: Business Rule 1 - number of positions must not exceed quota.available_number.
+            quantity-source: quota.available_number
+      example:
+        email: "buyer@example.org"
+        locale: "en"
+        payment_provider: "banktransfer"
+        send_email: false
+        positions:
+          - item: "{{item_id}}"
+
+    OrderAction:
+      type: object
+      properties:
+        send_email: {type: boolean}
+      example:
+        send_email: false
+
+    # ---------------- Responses ----------------
+    Item:
+      type: object
+      required: [id, name, default_price, active]
+      properties:
+        id: {type: integer}
+        name: {type: object}
+        default_price: {type: string}
+        active: {type: boolean}
+        min_per_order: {type: integer, nullable: true}
+        max_per_order: {type: integer, nullable: true}
+
+    Quota:
+      type: object
+      required: [id, name, size, items]
+      properties:
+        id: {type: integer}
+        name: {type: string}
+        size: {type: integer, nullable: true}
+        items: {type: array, items: {type: integer}}
+        closed: {type: boolean}
+        available: {type: boolean, description: "Only with ?with_availability=true"}
+        available_number: {type: integer, nullable: true, description: "Only with ?with_availability=true"}
+
+    CartPosition:
+      type: object
+      required: [id, cart_id, item, price, expires]
+      properties:
+        id: {type: integer}
+        cart_id: {type: string}
+        item: {type: integer}
+        price: {type: string}
+        expires: {type: string, format: date-time}
+
+    Order:
+      type: object
+      required: [code, status, email, total, positions]
+      properties:
+        code: {type: string}
+        status: {type: string, enum: [n, p, e, c]}
+        email: {type: string, nullable: true}
+        total: {type: string}
+        positions:
+          type: array
+          items:
+            type: object
+            required: [id, item]
+            properties:
+              id: {type: integer}
+              item: {type: integer}
+              price: {type: string}
+
+    PaginatedItems:
+      type: object
+      required: [count, results]
+      properties:
+        count: {type: integer}
+        results: {type: array, items: {$ref: '#/components/schemas/Item'}}
+    PaginatedQuotas:
+      type: object
+      required: [count, results]
+      properties:
+        count: {type: integer}
+        results: {type: array, items: {$ref: '#/components/schemas/Quota'}}
