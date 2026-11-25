@@ -1,0 +1,102 @@
+# Zubair's SQE Technical Task Tracker & Progress Journal
+
+**Owner:** Zubair (Member 1 / SQE Lead)  
+**Assigned Technical Area:** White-Box Unit Testing (100% Statement & Branch Coverage) | MCC & MC/DC | Mutation Testing (`mutmut`) | GitHub Actions CI Gate  
+**Excluded / Transferred:** SonarQube & CFG Cyclomatic Complexity (Assigned to Tawassul)  
+**Base Working Branch:** `zubair`  
+**Current Active Branch:** `zubair`  
+**Last Updated:** 2026-11-25
+
+---
+
+## 📊 High-Level Roadmap & Milestones
+
+| # | Milestone / Feature | Branch Name | Status | Target Deliverables |
+| :---: | :--- | :--- | :---: | :--- |
+| **M1** | Environment & Test Fixtures Setup | `feat-zubair-fixtures` | ✅ COMPLETED | `conftest.py`, sample Event, Item, Quota fixtures |
+| **M2** | White-Box Unit Tests: Quota Boundary (Rule 1) | `feat-zubair-quota-rules` | 🔄 IN PROGRESS | 100% statement/branch coverage on `QuotaAvailability` |
+| **M3** | White-Box Unit Tests: Order State Machine (Rule 3) | `zubair/feat-whitebox-order-rules` | ⏳ PENDING | Order lifecycle transitions & invalid transition guards |
+| **M4** | MCC Truth Table (16-row) & MC/DC Pairs (Rule 2) | `zubair/feat-mcc-mcdc-tests` | ⏳ PENDING | Item availability boolean independence tests |
+| **M5** | Cart Expiration & Quota Release (Rule 4) | `zubair/feat-whitebox-cart-rules` | ⏳ PENDING | 30-min cart reservation expiration tests |
+| **M6** | Mutation Testing (`mutmut`) & Custom Mutators | `zubair/feat-mutation-mutmut` | ⏳ PENDING | Baseline score, 2 custom operators, 15 surviving mutant analysis |
+| **M7** | GitHub Actions CI Quality Gate | `zubair/feat-ci-quality-gate` | ⏳ PENDING | Blocking pipeline, 1 blocked PR, 1 passing bugfix PR |
+| **M8** | Viva Defense Package & Live Task Script | `zubair` | ⏳ PENDING | Viva questions, live code change proof, AI disclosure log |
+
+---
+
+## 📝 Granular Subtask Execution Log
+
+### Milestone 1: Environment & Test Fixtures Setup
+- **Branch:** `feat-zubair-fixtures` (Merged into `zubair`)
+- [x] Subtask 1.1: Verify pretix test execution environment with `pytest` in `pretix/.venv`.
+- [x] Subtask 1.2: Create `pretix/src/tests/team/conftest.py` with transactional fixtures (`team_organizer`, `team_event`, `team_item`, `team_quota`, `make_order`, `make_cart_position`).
+- [x] Subtask 1.3: Run smoke test verifying custom team test runner works inside pretix.
+- **Outcome / Evidence:**
+  - Test command: `.venv\Scripts\pytest.exe src\tests\team\zubair\test_fixtures_smoke.py`
+  - Output: `1 passed in 0.80s` (Commit: `9a7d82431`).
+  - Fixtures verified: `team_organizer`, `team_event`, `team_item`, `team_quota` with initial `AVAILABILITY_OK` and count = 10.
+
+---
+
+### Milestone 2: White-Box Unit Tests — Quota Boundary & Invariants (Rule 1)
+- **Branch:** `zubair/feat-whitebox-quota-rules`
+- [ ] Subtask 2.1: Implement unlimited quota capacity tests (`size is None`).
+- [ ] Subtask 2.2: Implement exact capacity boundary tests (`sold == size`).
+- [ ] Subtask 2.3: Implement partial cart reservation tests (`sold + cart == size`).
+- [ ] Subtask 2.4: Implement oversell rejection tests (`QuotaExceededException`).
+- [ ] Subtask 2.5: Measure statement and branch coverage on `pretix.base.services.quotas`.
+- **Outcome / Evidence:** *(Pending execution)*
+
+---
+
+### Milestone 3: White-Box Unit Tests — Order State Machine (Rule 3)
+- **Branch:** `zubair/feat-whitebox-order-rules`
+- [ ] Subtask 3.1: Valid transition: `PENDING` $\rightarrow$ `PAID`.
+- [ ] Subtask 3.2: Valid transition: `PENDING` $\rightarrow$ `CANCELED`.
+- [ ] Subtask 3.3: Valid transition: `PAID` $\rightarrow$ `REFUNDED`.
+- [ ] Subtask 3.4: Invalid transition: `CANCELED` $\centernot\rightarrow$ `PAID` (Assert `can_be_paid() == False`).
+- [ ] Subtask 3.5: Invalid transition: `REFUNDED` $\centernot\rightarrow$ `PAID`.
+- **Outcome / Evidence:** *(Pending execution)*
+
+---
+
+### Milestone 4: MCC Truth Tables & MC/DC Pairs (Rule 2)
+- **Branch:** `zubair/feat-mcc-mcdc-tests`
+- [ ] Subtask 4.1: Construct formal 16-row MCC truth table in Markdown.
+- [ ] Subtask 4.2: Extract formal MC/DC pairs isolating conditions $A, B, C, D_{\text{quota}}$.
+- [ ] Subtask 4.3: Implement parameterized pytest suite running the 5 MC/DC tests.
+- **Outcome / Evidence:** *(Pending execution)*
+
+---
+
+### Milestone 5: Cart Expiration & Quota Release (Rule 4)
+- **Branch:** `zubair/feat-whitebox-cart-rules`
+- [ ] Subtask 5.1: Test active cart ($< 30\text{ min}$) decrements available quota.
+- [ ] Subtask 5.2: Test expired cart ($> 30\text{ min}$) releases quota back to the pool.
+- **Outcome / Evidence:** *(Pending execution)*
+
+---
+
+### Milestone 6: Mutation Testing (`mutmut`) & Custom Operators
+- **Branch:** `zubair/feat-mutation-mutmut`
+- [ ] Subtask 6.1: Run `mutmut` baseline and record initial mutation score.
+- [ ] Subtask 6.2: Implement Custom Operator 1 (Quota Boundary Flip).
+- [ ] Subtask 6.3: Implement Custom Operator 2 (Order State Machine Bypass).
+- [ ] Subtask 6.4: Classify 15 surviving mutants (Equivalent, Missing Test, Weak Assertion) and kill killables.
+- **Outcome / Evidence:** *(Pending execution)*
+
+---
+
+### Milestone 7: GitHub Actions CI Quality Gate
+- **Branch:** `zubair/feat-ci-quality-gate`
+- [ ] Subtask 7.1: Write `.github/workflows/sqe_quality_gate.yml` with 100% coverage and mutation score checks.
+- [ ] Subtask 7.2: Generate evidence of Blocked PR #1 (failing gate).
+- [ ] Subtask 7.3: Generate evidence of Passing Bugfix PR #2 (passing gate).
+- **Outcome / Evidence:** *(Pending execution)*
+
+---
+
+### Milestone 8: Viva Defense & AI-Use Log
+- **Branch:** `zubair`
+- [ ] Subtask 8.1: Complete AI-use disclosure log with all prompts and outputs.
+- [ ] Subtask 8.2: Practice live boundary code inversion task for the viva.
