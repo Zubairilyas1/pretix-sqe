@@ -16,8 +16,8 @@
 | **M1** | Environment & Test Fixtures Setup | `feat-zubair-fixtures` | ✅ COMPLETED | `conftest.py`, sample Event, Item, Quota fixtures |
 | **M2** | White-Box Unit Tests: Quota Boundary (Rule 1) | `feat-zubair-quota-rules` | ✅ COMPLETED | 100% statement/branch coverage on `QuotaAvailability` |
 | **M3** | White-Box Unit Tests: Order State Machine (Rule 3) | `feat-zubair-order-rules` | ✅ COMPLETED | Order lifecycle transitions & invalid transition guards |
-| **M4** | MCC Truth Table (16-row) & MC/DC Pairs (Rule 2) | `feat-zubair-mcc-mcdc` | 🔄 IN PROGRESS | Item availability boolean independence tests |
-| **M5** | Cart Expiration & Quota Release (Rule 4) | `zubair/feat-whitebox-cart-rules` | ⏳ PENDING | 30-min cart reservation expiration tests |
+| **M4** | MCC Truth Table (16-row) & MC/DC Pairs (Rule 2) | `feat-zubair-mcc-mcdc` | ✅ COMPLETED | Item availability boolean independence tests |
+| **M5** | Cart Expiration & Quota Release (Rule 4) | `feat-zubair-cart-rules` | 🔄 IN PROGRESS | 30-min cart reservation expiration tests |
 | **M6** | Mutation Testing (`mutmut`) & Custom Mutators | `zubair/feat-mutation-mutmut` | ⏳ PENDING | Baseline score, 2 custom operators, 15 surviving mutant analysis |
 | **M7** | GitHub Actions CI Quality Gate | `zubair/feat-ci-quality-gate` | ⏳ PENDING | Blocking pipeline, 1 blocked PR, 1 passing bugfix PR |
 | **M8** | Viva Defense Package & Live Task Script | `zubair` | ⏳ PENDING | Viva questions, live code change proof, AI disclosure log |
@@ -70,11 +70,17 @@
 ---
 
 ### Milestone 4: MCC Truth Tables & MC/DC Pairs (Rule 2)
-- **Branch:** `zubair/feat-mcc-mcdc-tests`
-- [ ] Subtask 4.1: Construct formal 16-row MCC truth table in Markdown.
-- [ ] Subtask 4.2: Extract formal MC/DC pairs isolating conditions $A, B, C, D_{\text{quota}}$.
-- [ ] Subtask 4.3: Implement parameterized pytest suite running the 5 MC/DC tests.
-- **Outcome / Evidence:** *(Pending execution)*
+- **Branch:** `feat-zubair-mcc-mcdc` (Merged into `zubair`)
+- [x] Subtask 4.1: Construct formal 16-row MCC truth table in Python/pytest parameterized matrix.
+- [x] Subtask 4.2: Extract formal MC/DC pairs isolating conditions $A, B, C, D_{\text{quota}}$:
+  - Condition $A$ (Active): (Row 1, Row 9) $\rightarrow$ Outcome flips True $\rightarrow$ False.
+  - Condition $B$ (From Date): (Row 1, Row 5) $\rightarrow$ Outcome flips True $\rightarrow$ False.
+  - Condition $C$ (Until Date): (Row 1, Row 3) $\rightarrow$ Outcome flips True $\rightarrow$ False.
+  - Condition $D$ (Quota Stock): (Row 1, Row 2) $\rightarrow$ Outcome flips True $\rightarrow$ False.
+- [x] Subtask 4.3: Implement parameterized pytest suite executing all 16 MCC rows + 4 dedicated MC/DC independence proofs.
+- **Outcome / Evidence:**
+  - Test command: `.venv\Scripts\pytest.exe src\tests\team\zubair\test_mcc_mcdc.py`
+  - Output: `20 passed in 1.05s` (Commit: `894822f65`).
 
 ---
 
