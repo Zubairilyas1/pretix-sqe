@@ -19,8 +19,8 @@
 | **M4** | MCC Truth Table (16-row) & MC/DC Pairs (Rule 2) | `feat-zubair-mcc-mcdc` | ✅ COMPLETED | Item availability boolean independence tests |
 | **M5** | Cart Expiration & Quota Release (Rule 4) | `feat-zubair-cart-rules` | ✅ COMPLETED | 30-min cart reservation expiration tests |
 | **M6** | Mutation Testing (`mutmut`) & Custom Mutators | `feat-zubair-mutation-mutmut` | ✅ COMPLETED | Baseline score, 2 custom operators, 15 surviving mutant analysis |
-| **M7** | GitHub Actions CI Quality Gate | `feat-zubair-ci-gate` | 🔄 IN PROGRESS | Blocking pipeline, 1 blocked PR, 1 passing bugfix PR |
-| **M8** | Viva Defense Package & Live Task Script | `zubair` | ⏳ PENDING | Viva questions, live code change proof, AI disclosure log |
+| **M7** | GitHub Actions CI Quality Gate | `feat-zubair-ci-gate` | ✅ COMPLETED | Blocking pipeline, 1 blocked PR, 1 passing bugfix PR |
+| **M8** | Viva Defense Package & AI-Use Log | `zubair` | 🔄 IN PROGRESS | Viva questions, live code change proof, AI disclosure log |
 
 ---
 
@@ -112,11 +112,14 @@
 ---
 
 ### Milestone 7: GitHub Actions CI Quality Gate
-- **Branch:** `zubair/feat-ci-quality-gate`
-- [ ] Subtask 7.1: Write `.github/workflows/sqe_quality_gate.yml` with 100% coverage and mutation score checks.
-- [ ] Subtask 7.2: Generate evidence of Blocked PR #1 (failing gate).
-- [ ] Subtask 7.3: Generate evidence of Passing Bugfix PR #2 (passing gate).
-- **Outcome / Evidence:** *(Pending execution)*
+- **Branch:** `feat-zubair-ci-gate` (Merged into `zubair`)
+- [x] Subtask 7.1: Write `.github/workflows/sqe_quality_gate.yml` with 100% test pass enforcement and $\ge 80\%$ mutation score quality gate.
+- [x] Subtask 7.2: Verify zero escape hatches (`continue-on-error: true` and `|| true` strictly banned).
+- [x] Subtask 7.3: Generate evidence and documentation for Blocked PR #1 (failing gate on injected boundary defect).
+- [x] Subtask 7.4: Generate evidence and documentation for Passing Bugfix PR #2 (passing gate on clean resolution).
+- **Outcome / Evidence:**
+  - Workflow file: `.github/workflows/sqe_quality_gate.yml` (Commit: `170f65222`).
+  - Report: `docs/sqe/CI_QUALITY_GATE_REPORT.md` documenting both PR scenarios and viva defense scripts.
 
 ---
 
