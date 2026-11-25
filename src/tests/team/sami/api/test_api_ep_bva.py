@@ -19,6 +19,7 @@ means the suite turns red if the behaviour ever changes, so the defect list
 stays accurate.
 """
 import json
+import os
 from decimal import Decimal
 from pathlib import Path
 
@@ -29,7 +30,11 @@ from pretix.base.models import CartPosition, Item, Order, Quota
 
 from .conftest import apply_case
 
-DATA = json.loads((Path(__file__).resolve().parent.parent / "generator" / "test_data.json").read_text("utf-8"))
+# SQE_TEST_DATA lets the regeneration demo run the same tests on data generated
+# from a changed spec, to prove the predicted effect.
+DATA_PATH = Path(os.environ.get("SQE_TEST_DATA") or
+                 Path(__file__).resolve().parent.parent / "generator" / "test_data.json")
+DATA = json.loads(DATA_PATH.read_text("utf-8"))
 
 # Known deviations between spec (expected behaviour) and pretix (observed).
 # Filled from test runs; each id is described in endpoint_weaknesses.md.

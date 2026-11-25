@@ -3,7 +3,7 @@
     "generator": "tests/team/sami/generator/generate_test_data.py",
     "spec": "pretix_orders_api.yaml",
     "spec_version": "1.0.0-sqe",
-    "spec_sha256": "04c3318eac64c2943447b5a2f333983c44189697b24bd4b6400d8e49460af0bf",
+    "spec_sha256": "28846ed030a2a23ae493adb490386dc4046c5679014780e861c29e9cc4f48be7",
     "total_cases": 167,
     "by_technique": {
       "EP": 104,

@@ -320,7 +320,8 @@ def generate(spec):
 
 
 def build_document(spec_path):
-    raw = Path(spec_path).read_bytes()
+    # normalise line endings so a CRLF checkout on Windows hashes the same
+    raw = Path(spec_path).read_bytes().replace(b"\r\n", b"\n")
     spec = yaml.safe_load(raw)
     data = generate(spec)
     return {

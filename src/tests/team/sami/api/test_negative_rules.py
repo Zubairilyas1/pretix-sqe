@@ -11,6 +11,7 @@ authorisation, all through the HTTP API.
   Authorisation        organizer vs read-only token vs anonymous
 """
 import json
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -20,7 +21,11 @@ from django_scopes import scopes_disabled
 
 from pretix.base.models import Order, OrderPayment
 
-DATA = json.loads((Path(__file__).resolve().parent.parent / "generator" / "test_data.json").read_text("utf-8"))
+# SQE_TEST_DATA lets the regeneration demo run the same tests on data generated
+# from a changed spec, to prove the predicted effect.
+DATA_PATH = Path(os.environ.get("SQE_TEST_DATA") or
+                 Path(__file__).resolve().parent.parent / "generator" / "test_data.json")
+DATA = json.loads(DATA_PATH.read_text("utf-8"))
 
 
 def _relative_cases(operation):
