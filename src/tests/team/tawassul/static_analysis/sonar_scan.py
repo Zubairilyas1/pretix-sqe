@@ -15,7 +15,9 @@ import base64
 import json
 import os
 import subprocess
+import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -30,7 +32,7 @@ FILES = [
     "pretix/control/views/item.py",
 ]
 EVIDENCE = Path(__file__).parent / "evidence"
-SRC = Path(__file__).resolve().parents[3]
+SRC = Path(__file__).resolve().parents[4]   # .../src
 
 
 def call(path, method="GET", data=None, password=NEW_PASSWORD):
@@ -42,10 +44,20 @@ def call(path, method="GET", data=None, password=NEW_PASSWORD):
         return json.loads(body) if body else {}
 
 
+def _status():
+    try:
+        with urllib.request.urlopen(f"{SONAR}/api/system/status", timeout=5) as r:
+            return json.loads(r.read())["status"]
+    except Exception:
+        return None
+
+
 def start():
-    subprocess.run(["docker", "rm", "-f", "sqe-sonar"], capture_output=True)
-    subprocess.run(["docker", "run", "-d", "--name", "sqe-sonar", "-p", "9000:9000", "sonarqube:community"], check=True)
-    for _ in range(150):
+    if _status() != "UP":                      # reuse a running instance, else start one
+        subprocess.run(["docker", "rm", "-f", "sqe-sonar"], capture_output=True)
+        subprocess.run(["docker", "run", "-d", "--name", "sqe-sonar", "-p", "9000:9000", "sonarqube:community"],
+                       check=True)
+    for _ in range(300):                       # first start can take 5-10 minutes on a laptop
         try:
             with urllib.request.urlopen(f"{SONAR}/api/system/status", timeout=5) as r:
                 if json.loads(r.read())["status"] == "UP":
@@ -55,10 +67,16 @@ def start():
         time.sleep(3)
     else:
         raise RuntimeError("SonarQube did not start")
-    call("/api/users/change_password", "POST",
-         {"login": "admin", "previousPassword": "admin", "password": NEW_PASSWORD}, password="admin")
-    call("/api/projects/create", "POST", {"project": PROJECT, "name": "pretix W1/W2 (SQE Area 3)"})
-    return call("/api/user_tokens/generate", "POST", {"name": "scanner", "type": "PROJECT_ANALYSIS_TOKEN",
+    try:
+        call("/api/users/change_password", "POST",
+             {"login": "admin", "previousPassword": "admin", "password": NEW_PASSWORD}, password="admin")
+    except urllib.error.HTTPError:
+        pass                                   # already changed on an earlier run
+    try:
+        call("/api/projects/create", "POST", {"project": PROJECT, "name": "pretix W1/W2 (SQE Area 3)"})
+    except urllib.error.HTTPError:
+        pass                                   # project exists from an earlier run
+    return call("/api/user_tokens/generate", "POST", {"name": f"scanner-{int(time.time())}", "type": "PROJECT_ANALYSIS_TOKEN",
                                                       "projectKey": PROJECT})["token"]
 
 
@@ -84,7 +102,13 @@ def export():
     files = call(f"/api/measures/component_tree?component={PROJECT}&qualifiers=FIL&ps=50"
                  f"&metricKeys=ncloc,complexity,cognitive_complexity,code_smells,bugs,vulnerabilities")
     issues = call(f"/api/issues/search?componentKeys={PROJECT}&ps=500&s=SEVERITY&asc=false")
-    hotspots = call(f"/api/hotspots/search?projectKey={PROJECT}&ps=100")
+    hotspots = {}
+    for param in ("project", "projectKey"):      # parameter name differs between versions
+        try:
+            hotspots = call(f"/api/hotspots/search?{param}={PROJECT}&ps=100")
+            break
+        except urllib.error.HTTPError:
+            continue
     out = {"project": {m["metric"]: m["value"] for m in project["component"]["measures"]},
            "files": {f["path"]: {m["metric"]: m["value"] for m in f["measures"]} for f in files["components"]},
            "issues": [{k: i.get(k) for k in ("rule", "severity", "type", "component", "line", "message", "effort")}
@@ -97,7 +121,8 @@ def export():
 
 
 if __name__ == "__main__":
-    token = start()
-    print("analysis:", scan(token))
+    if "--export-only" not in sys.argv:
+        token = start()
+        print("analysis:", scan(token))
     export()
     print("dashboard:", f"{SONAR}/dashboard?id={PROJECT}  (container 'sqe-sonar' left running for screenshots)")
