@@ -1,5 +1,5 @@
 {
-  "url": "http://localhost:55157/control/event/sqe-org/sqe-conf/items/add",
+  "url": "http://localhost:59109/control/event/sqe-org/sqe-conf/items/add",
   "violations": [
     {
       "rule": "aria-input-field-name",
@@ -24,48 +24,6 @@
       "nodes": [
         ".context-meta",
         ".select2-selection__placeholder"
-      ]
-    },
-    {
-      "rule": "html-has-lang",
-      "impact": "serious",
-      "wcag": [
-        "wcag2a",
-        "wcag311"
-      ],
-      "help": "<html> element must have a lang attribute",
-      "nodes": [
-        "html"
-      ]
-    },
-    {
-      "rule": "image-alt",
-      "impact": "critical",
-      "wcag": [
-        "wcag2a",
-        "wcag111"
-      ],
-      "help": "Images must have alternative text",
-      "nodes": [
-        ".navbar-brand > img"
-      ]
-    },
-    {
-      "rule": "link-name",
-      "impact": "serious",
-      "wcag": [
-        "wcag2a",
-        "wcag244",
-        "wcag412"
-      ],
-      "help": "Links must have discernible text",
-      "nodes": [
-        "li:nth-child(2) > .arrow[href=\"#\"]",
-        ".active > .arrow[href=\"#\"]",
-        "li:nth-child(4) > .arrow[href=\"#\"]",
-        "li:nth-child(5) > .arrow[href=\"#\"]",
-        "li:nth-child(6) > .arrow[href=\"#\"]",
-        "li:nth-child(7) > .arrow[href=\"#\"]"
       ]
     }
   ]
