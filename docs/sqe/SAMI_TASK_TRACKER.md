@@ -29,3 +29,4 @@
   - 3 were missing fixtures in my tests; fixed.
   - The rest are real weaknesses: W-01, W-02, W-04, W-05, then W-07 and W-08 from the new Rule 2 and per-order limit tests.
 - 2026-11-25: Regeneration demo: changed `code.maxLength` 16→12 and `size.maximum` →1000. 9 cases changed. The predicted failure (`code.BVA.len_max+1`) was observed; the size cases show as the known W-05 xfail.
+- 2026-11-26: PR #12 merged into main. Wrote the Area 2 report (`docs/sqe/reports/sami/SAMI_AREA2_REPORT.docx` and `.pdf`) with real screenshots of every run; branch `sami/docs-area2-report`.
