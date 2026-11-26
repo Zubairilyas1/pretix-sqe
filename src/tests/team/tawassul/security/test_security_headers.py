@@ -58,7 +58,7 @@ def _set_cookie_headers(page, url, method="GET", form=None):
     """Raw Set-Cookie lines as pretix sends them (the browser's cookie jar would
     report its own defaults instead, e.g. SameSite=Lax when the attribute is absent)."""
     resp = page.request.fetch(url, method=method, form=form)
-    return [v for k, v in resp.headers_array() if k.lower() == "set-cookie"]
+    return [h["value"] for h in resp.headers_array if h["name"].lower() == "set-cookie"]
 
 
 def test_session_cookie_is_httponly(page, shop_url, shop, team_item):

@@ -79,9 +79,28 @@ def _wait_until_db_writable(timeout=15):
             time.sleep(0.2)
 
 
+def retry_if_locked(fn, timeout=15):
+    """Run a setup write, retrying while SQLite reports a lock left by the previous
+    test's live-server request (SQLite allows one writer at a time)."""
+    from django.db import OperationalError
+    deadline = time.time() + timeout
+    while True:
+        try:
+            return fn()
+        except OperationalError as e:
+            if "locked" not in str(e) or time.time() > deadline:
+                raise
+            time.sleep(0.3)
+
+
 @pytest.fixture
 def shop(team_organizer, team_event, team_item, team_quota):
     """W1 done: the event is live and the item can be bought (Rule 2 satisfied)."""
+    retry_if_locked(lambda: _make_shop(team_organizer, team_event))
+    return team_event
+
+
+def _make_shop(team_organizer, team_event):
     team_organizer.plugins = "pretix.plugins.banktransfer"
     team_organizer.save()
     with scope(organizer=team_organizer):
@@ -97,7 +116,6 @@ def shop(team_organizer, team_event, team_item, team_quota):
         team_event.settings.set("payment_banktransfer_bank_details_type", "other")
         team_event.settings.set("payment_banktransfer_bank_details", "SQE test bank account")
         team_event.settings.set("attendee_names_asked", False)
-    return team_event
 
 
 @pytest.fixture
@@ -108,7 +126,7 @@ def shop_url(live_url, shop):
 @pytest.fixture
 def organizer_user(team_organizer, team_event):
     """A back-office user with full rights on the team event."""
-    user = User.objects.create_user(ORGANIZER_EMAIL, ORGANIZER_PASSWORD)
+    user = retry_if_locked(lambda: User.objects.create_user(ORGANIZER_EMAIL, ORGANIZER_PASSWORD))
     with scopes_disabled():
         team = Team.objects.create(
             organizer=team_organizer, name="SQE organizers",
