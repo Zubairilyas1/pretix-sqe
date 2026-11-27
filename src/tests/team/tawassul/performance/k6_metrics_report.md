@@ -71,7 +71,7 @@ Every failed request was rolled back completely: no half-written orders and no l
 - SQLite instead of PostgreSQL. The 5-VU error rate would most likely be much lower on PostgreSQL; the latency trend is still meaningful.
 - waitress on Windows instead of gunicorn and nginx on Linux.
 - k6 and pretix share one laptop, so k6's own CPU use is included in the measurements.
-- Only 60 s per run, with no warm-up phase. The first iterations include cold caches.
+- Only 60 s per run, with no warm-up phase. The first iterations include cold caches. (Fixed in the v2 re-run, section 7.)
 - The workload covers the API path of W2 only; the presale web checkout (HTML rendering) is not load-tested.
 
 ## 5. Recommendations
@@ -91,3 +91,32 @@ set PRETIX_CONFIG_FILE=tests/team/tawassul/performance/perf_pretix.cfg
 ../.venv/Scripts/python manage.py shell -c "exec(open('tests/team/tawassul/performance/seed_perf_event.py').read())"
 docker run --rm -i -e VUS=1 -e TOKEN=<.perf_token> -e ITEM=1 -e QUOTA=1 grafana/k6 run - < tests/team/tawassul/performance/k6_workload.js
 ```
+
+
+## 7. Re-run with the v2 protocol (27 Nov 2026)
+Limits were fixed **before** this run in `PERF_TEST_PLAN.md` (committed first). Differences to the first runs:
+one operation only (`POST orders/`, `k6_order_create.js`), a 15 s warm-up per run that is **excluded**, and a 60 s
+measured phase at the target number of users; numbers below are for the measured phase only (`{phase:measure}`).
+Environment: `results_v2/environment.txt` (i7-11850H 8 cores / 16 threads, 31.7 GB RAM, Windows 11 Pro, k6 v0.57.0
+native, waitress 8 threads, SQLite; no other load). Raw output: `results_v2/<run>.txt` and `.json`; reseed proof
+`results_v2/seed_<run>.txt`; server errors `results_v2/server_errors.txt`.
+
+| Run | Users | Requests (measured) | Requests/s | Median (ms) | p95 (ms) | Unexpected failures | Verdict |
+| :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| wl1a | 1 | 631 | 10.52 | 88 | **133** (limit 500) met | **0.00 %** (limit < 1 %) met | met |
+| wl1b | 1 | 657 | 10.95 | 84 | **129** (limit 500) met | **0.00 %** (limit < 1 %) met | met |
+| wl5a | 5 | 1149 | 19.15 | 211 | **492** (limit 1000) met | **72.85 %** (limit < 1 %) MISSED | **not met** |
+| wl5b | 5 | 1089 | 18.15 | 224 | **527** (limit 1000) met | **71.99 %** (limit < 1 %) MISSED | **not met** |
+
+**Interpretation.**
+* **WL-1 (1 user) meets both limits** in both repeats with a wide margin (p95 about 130 ms, 0 % failures). The
+  difference to the first runs (p95 435 ms) comes from measuring only the order call, excluding the warm-up and having
+  no other load on the machine.
+* **WL-2 (5 users) fails the failure limit** in both repeats: p95 (about 500 ms) is within the 1000 ms limit -
+  partly because failed requests return fast - but about 72 % of the order calls fail. Every failure is `OperationalError: database is
+  locked` returned as **HTTP 500** (`results_v2/server_errors.txt`): SQLite allows one writer at a time and pretix's
+  order creation holds a write transaction while it locks the quota. The share is higher than in the first runs (24 %)
+  because the workload now consists only of writes.
+* The repeats agree (p95 difference about 7 %, failure rate 72.9 % vs 72.0 %), so the verdict is stable.
+* Exit criterion **EC-3 is not met**; residual risk PR-PERF-01 stays **High** until the run is repeated on PostgreSQL
+  and a lock timeout returns 503 + `Retry-After` instead of 500.

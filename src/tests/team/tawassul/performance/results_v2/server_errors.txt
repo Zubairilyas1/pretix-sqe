@@ -1,0 +1,33 @@
+Server log of the v2 runs (perf_server.py), error summary:
+HTTP 500 'Internal Server Error' log lines: 4104
+   8208 OperationalError: database is locked
+
+First error traceback:
+INFO 2026-11-27 18:22:56,029 celery.app.trace trace Task pretix.base.services.notifications.notify[04322f9e-6fc9-4265-890e-5c7701e409cb] succeeded in 0.01600000000325963s: None
+INFO 2026-11-27 18:22:56,032 celery.app.trace trace Task pretix.api.webhooks.notify_webhooks[543a8747-423b-4b49-8ad2-030ba8d10781] succeeded in 0.0s: None
+ERROR 2026-11-27 18:23:35,281 django.request log Internal Server Error: /api/v1/organizers/perf-org/events/perf-conf/orders/
+Traceback (most recent call last):
+  File "D:\5th Semester\4.SQE\Project\pretix\.venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\5th Semester\4.SQE\Project\pretix\.venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: database is locked
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\5th Semester\4.SQE\Project\pretix\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\5th Semester\4.SQE\Project\pretix\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\5th Semester\4.SQE\Project\pretix\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\5th Semester\4.SQE\Project\pretix\.venv\Lib\site-packages\rest_framework\viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\5th Semester\4.SQE\Project\pretix\.venv\Lib\site-packages\rest_framework\views.py", line 526, in dispatch
