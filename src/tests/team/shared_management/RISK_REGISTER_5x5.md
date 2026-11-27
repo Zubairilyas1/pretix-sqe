@@ -38,7 +38,7 @@ Likelihood: 1 rare, 2 unlikely, 3 possible, 4 likely, 5 almost certain. Impact: 
 | PR-SEC-01 | Tawassul | Vulnerable dependency `oauthlib 3.3.1` | 2 | 4 | 8 | Medium | pip-audit; A3-D04 |
 | PR-SEC-02 | Tawassul | Missing `X-Content-Type-Options` / `Referrer-Policy` | 3 | 2 | 6 | Medium | Header tests + ZAP; A3-D02 |
 | PR-SEC-03 | Tawassul | End-of-life Bootstrap 3.4.1 with XSS advisories | 2 | 3 | 6 | Medium | ZAP 10003; A3-D05 |
-| PR-SEC-04 | Tawassul | CSP without `frame-ancestors`; cookies without SameSite over HTTP (accepted by design for the widget) | 2 | 3 | 6 | Medium | ZAP 10055/10054 triage against source; clickjacking test |
+| PR-SEC-04 | Tawassul | CSP without `frame-ancestors`; customer order pages may be framed (`xframe_options_exempt`, ZAP 10020); cookies without SameSite over HTTP (accepted by design for the widget) | 2 | 3 | 6 | Medium | ZAP 10055/10054/10020 triage against source; clickjacking test on shop/checkout |
 | PR-A11Y-01 | Tawassul | Back office unusable with a screen reader (lang, alt, link names) | 4 | 3 | 12 | High | axe + Lighthouse before/after, keyboard test; A3-D03 fixed |
 | PR-A11Y-02 | Tawassul | Low colour contrast and unnamed select2 combobox in the product form | 4 | 2 | 8 | Medium | axe findings F4/F5 (open) |
 | PR-CODE-01 | Tawassul | Add-on price correction is a self-assignment (dead code) | 3 | 3 | 9 | Medium | SonarQube S1656; A3-D06 |

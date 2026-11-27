@@ -1,0 +1,49 @@
+{
+  "flows": [
+    [
+      "W2",
+      "order confirmation page",
+      "http://localhost:8000/perf-org/perf-conf/order/TYRBU/vapbb6q783olyik5/"
+    ],
+    [
+      "W1",
+      "quota created",
+      "http://localhost:8000/control/event/perf-org/perf-conf/quotas/"
+    ]
+  ],
+  "urls_with_alerts": [
+    "http://localhost:8000/control/",
+    "http://localhost:8000/control/event/perf-org/perf-conf/items/add",
+    "http://localhost:8000/control/event/perf-org/perf-conf/quotas/",
+    "http://localhost:8000/control/event/perf-org/perf-conf/quotas/add",
+    "http://localhost:8000/control/login",
+    "http://localhost:8000/control/login/bad_origin",
+    "http://localhost:8000/control/widgets.json",
+    "http://localhost:8000/js_helpers/address_form/",
+    "http://localhost:8000/perf-org/perf-conf/",
+    "http://localhost:8000/perf-org/perf-conf/cart/add",
+    "http://localhost:8000/perf-org/perf-conf/checkout/confirm/",
+    "http://localhost:8000/perf-org/perf-conf/checkout/payment/",
+    "http://localhost:8000/perf-org/perf-conf/checkout/questions/",
+    "http://localhost:8000/perf-org/perf-conf/checkout/start",
+    "http://localhost:8000/perf-org/perf-conf/order/TYRBU/vapbb6q783olyik5/",
+    "http://localhost:8000/perf-org/perf-conf/order/TYRBU/vapbb6q783olyik5/pay/2371/complete",
+    "http://localhost:8000/perf-org/perf-conf/theme.css",
+    "http://localhost:8000/static/CACHE/css/output.436725f3ebeb.css",
+    "http://localhost:8000/static/CACHE/css/output.5f2c1bddc698.css",
+    "http://localhost:8000/static/CACHE/css/presale.de8a5cc17488.css",
+    "http://localhost:8000/static/CACHE/js/output.73c7392e0137.js",
+    "http://localhost:8000/static/CACHE/js/presale.870f6ea870d0.js",
+    "http://localhost:8000/static/CACHE/js/walletdetection.22c9d1583bce.js",
+    "http://localhost:8000/static/fontawesome/fonts/fontawesome-webfont.af7ae505a9ee.woff2",
+    "http://localhost:8000/static/fonts/opensans_bold_macroman/OpenSans-Bold-webfont.2e90d5152ce9.woff",
+    "http://localhost:8000/static/fonts/opensans_bolditalic_macroman/OpenSans-BoldItalic-webfont.7657144ec477.woff",
+    "http://localhost:8000/static/fonts/opensans_italic_macroman/OpenSans-Italic-webfont.f42641eed834.woff",
+    "http://localhost:8000/static/fonts/opensans_regular_macroman/OpenSans-Regular-webfont.79515ad07889.woff",
+    "http://localhost:8000/static/jsi18n/en/djangojs.1e3e48da60b0.js",
+    "http://localhost:8000/static/pretixbase/js/csrfcookieretry.d555c651b944.js",
+    "http://localhost:8000/static/pretixcontrol/js/auth.e7fafbe44acc.js",
+    "http://localhost:8000/static/pretixcontrol/js/ui/hidequota.2a6443272ba6.js"
+  ],
+  "zap_version": "2.17.0"
+}

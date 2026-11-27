@@ -59,9 +59,12 @@ while True:
 
 def start_zap():
     subprocess.run(["docker", "rm", "-f", "sqe-zap"], capture_output=True)
+    # connection.timeoutInSecs: placing the order takes ~25 s on the perf instance (pretix retries the confirmation
+    # e-mail against a non-existent local SMTP server); ZAP's default 20 s would cut the response off.
     zap_cmd = ("zap.sh -daemon -silent -host 0.0.0.0 -port 8090 -config api.disablekey=true "
+               "-config connection.timeoutInSecs=120 "
                "-config api.addrs.addr.name=.* -config api.addrs.addr.regex=true")
-    subprocess.run(["docker", "run", "-d", "--name", "sqe-zap", "-p", "8090:8090", "zaproxy/zap-stable",
+    subprocess.run(["docker", "run", "-d", "--name", "sqe-zap", "-p", "8090:8090", "zaproxy/zap-stable:2.17.0",
                     "sh", "-c", f"python3 -c \"{FORWARDER}\" & {zap_cmd}"], check=True)
     for _ in range(150):                      # ZAP needs 1-3 minutes on first start
         try:

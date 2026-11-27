@@ -57,9 +57,31 @@ cd src
 ```
 
 
-## Open item (27 Nov 2026)
-The final order confirmation of W2 still has not passed through the ZAP proxy (see above). A re-run was prepared
-(perf instance rebuilt, `seed_perf_event.py`) but the ZAP image could not be pulled: Docker Desktop could not reach
-Docker Hub from its VM ("no HTTPS proxy"), and Docker was later stopped. The order page's security headers and
-cookies are verified by `test_security_headers.py` instead, so the residual gap is only the passive-scan rule set on
-that one page. To close it: start the perf server and run `python tests/team/tawassul/security/zap_scan.py`.
+## Re-run of 27 Nov 2026 - both workflows completely through the proxy
+**Why the first run stopped before the order page.** Placing the order took about 25 s on the perf instance: pretix
+retries the order confirmation e-mail against a local SMTP server that does not exist on the test machine
+(`ConnectionRefusedError` in the server log, then `perform_order ... succeeded in 25.2 s`). ZAP's default proxy timeout
+is 20 s, so ZAP cut the response off. The driver now starts ZAP with `connection.timeoutInSecs=120`, follows pretix's
+wait page to the order confirmation, and also **completes** the W1 action (creates a quota) instead of only opening pages.
+
+| Item | Result |
+| :--- | :--- |
+| Tool | OWASP ZAP 2.17.0 (`zaproxy/zap-stable:2.17.0`), passive scan only |
+| W2 (customer) | shop -> cart -> contact -> payment -> review -> **order confirmation reached** (`/order/<code>/<secret>/?thanks=yes`) |
+| W1 (organizer) | login -> product form -> quota form -> **quota "ZAP quota" created** (success message seen) |
+| Alerts | 186 instances, 14 rules (`evidence/zap_alerts.json`, `evidence/zap_report.html`, flows in `evidence/zap_flows.json`) |
+
+**New alert (not in the first run): 10020 Missing Anti-clickjacking Header on the order confirmation page.**
+
+| Field | Triage |
+| :--- | :--- |
+| Element / URL | `/{org}/{event}/order/{code}/{secret}/` (and the other customer order pages) |
+| Evidence | response has no `X-Frame-Options` and the CSP has no `frame-ancestors`; the shop and checkout pages do send `X-Frame-Options: DENY` (checked with curl) |
+| Source | `pretix/presale/views/order.py` marks 11 order views `xframe_options_exempt` so that the order page can be shown inside the embeddable shop widget after checkout |
+| Classification | **By design, residual risk** - linked to PR-SEC-04 (Low/Medium) |
+| Impact | another site could frame a customer's order page (it needs the secret link) and try to trick the customer into clicking "Cancel order"; the cancellation needs a second confirmation page and a CSRF-protected POST, which limits the risk |
+| Recommended fix | send `Content-Security-Policy: frame-ancestors 'self' <organizer's own domains>` on the order pages instead of exempting them completely |
+
+**Correction to the table above:** "Framing is blocked by `X-Frame-Options: DENY`" is true for the shop and checkout
+pages but **not** for the customer order pages (see 10020). All other rules are the same as in the first run, with the
+same triage (10202 on `<form method="dialog">` remains a false positive).

@@ -69,7 +69,7 @@ EC-3 is re-measured on the production database (PostgreSQL).
 | PR-SEC-01 vulnerable dependency | 8 | Medium | upgrade pending |
 | PR-SEC-02 missing headers | 6 | Medium | config fix pending |
 | PR-SEC-03 Bootstrap EOL | 6 | Low | CSP mitigates |
-| PR-SEC-04 CSP / SameSite | 6 | Low | accepted by design, X-Frame-Options verified |
+| PR-SEC-04 CSP / SameSite / framing | 6 | Low | accepted by design for the widget; order pages frameable (ZAP 10020), cancel needs a confirmed CSRF POST |
 | PR-A11Y-01 back office a11y | 12 | **Low** | fixed and verified (Lighthouse 81 -> 93) |
 | PR-A11Y-02 contrast / select2 | 8 | Medium | open |
 | PR-CODE-01 dead price correction | 9 | Medium | open upstream |
