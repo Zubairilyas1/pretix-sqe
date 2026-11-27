@@ -364,7 +364,7 @@ class QuotaAvailability:
                         self.count_exited_orders[q] += line['c']
                     else:
                         size_left[q] -= line['c']
-                        if size_left[q] <= 0 and q not in self.results:
+                        if size_left[q] < 0 and q not in self.results:
                             if line['order__status'] == Order.STATUS_PAID:
                                 self.results[q] = Quota.AVAILABILITY_GONE, 0
                             else:
