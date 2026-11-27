@@ -9,7 +9,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from tests.team.sami.generator import generate_test_data as gen
 
 REAL_SPEC = Path(gen.DEFAULT_SPEC)

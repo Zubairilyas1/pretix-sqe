@@ -18,6 +18,10 @@ Risk ids (`PR-API-xx`) are proposed entries for the shared risk register
 | W-06 | `with_availability` silently ignored on quota detail | Minor | PR-API-05 (4×2 = 8) |
 | W-07 | Order API ignores item sale window (Rule 2) | Major | PR-API-06 (3×4 = 12) |
 | W-08 | Order API ignores min/max per order (Rule 1) | Major | PR-API-06 |
+| W-09 | Negative order-position price accepted by `POST orders/` | Major | PR-API-01 |
+| W-10 | `X-Idempotency-Key` longer than 190 characters accepted | Minor | PR-API-02 |
+| W-11 | `positions[].attendee_name` longer than 255 characters accepted | Minor | PR-API-03 |
+| W-12 | Order action endpoints do not validate their body (`send_email` by truthiness) | Minor | PR-API-07 (3×2 = 6) |
 
 ---
 
@@ -70,6 +74,34 @@ Risk ids (`PR-API-xx`) are proposed entries for the shared risk register
 - **Impact:** per-customer purchase limits (anti-scalping) can be bypassed via the API.
 - **Fix:** count positions per item in `OrderCreateSerializer.create` and reject outside the limits unless `force: true`.
 
+### W-09 Negative order-position price accepted
+- **Evidence:** `test_api_ep_bva.py::test_create_order[createOrder.positions[].price.BVA.min-1]` and `[...EP.below_min]` (generator cases on the array items). `POST orders/` with `positions: [{item, price: "-0.01"}]` returns **201**.
+- **Root cause:** the position serializer of `OrderCreateSerializer` accepts a custom `price` without a lower bound (same missing bound as W-01/W-02).
+- **Impact:** an API client can create an order with a negative total; refunds/payouts and reports are wrong.
+- **Fix:** `min_value=Decimal("0.00")` on the position price field.
+
+### W-10 Idempotency key longer than the stored column accepted
+- **Evidence:** `test_api_parameters.py::test_header_parameter[createOrder.header:X-Idempotency-Key.BVA.len_max+1]` and `[...EP.too_long]`: a 191-character key returns **201** and the key is stored.
+- **Root cause:** `IdempotencyMiddleware` stores the header in `ApiCall.idempotency_key = CharField(max_length=190)` (`src/pretix/api/models.py:173`) without checking the length; SQLite does not enforce it.
+- **Impact:** on PostgreSQL the insert fails, so the client gets **500** instead of a 400 (assumption, not run on PostgreSQL), and retry protection is lost for long keys.
+- **Fix:** reject keys longer than 190 characters with 400 in the middleware.
+
+### W-11 Attendee name longer than 255 characters accepted
+- **Evidence:** `test_create_order[createOrder.positions[].attendee_name.BVA.len_max+1]` and `[...EP.too_long]` return **201**.
+- **Root cause:** `OrderPosition.attendee_name_cached` is `CharField(max_length=255)` (`src/pretix/base/models/orders.py:1514`); the API does not validate the length and SQLite does not enforce it.
+- **Impact:** database error (500) on PostgreSQL; names cut or lost on tickets.
+- **Fix:** `max_length=255` on the serializer field.
+
+### W-12 Order actions do not validate their body
+- **Evidence:** `test_api_ep_bva.py::test_order_action_body[markOrderPaid.send_email.EP.wrong_type]` (and null, and the same for `mark_canceled`): `{"send_email": "maybe"}` returns **200** and the action is executed.
+- **Root cause:** the action views read `request.data.get('send_email', True)` without a serializer (`src/pretix/api/views/order.py:397, 454, 512, 530`), so any value is used by truthiness: the string `"false"` *sends* the e-mail.
+- **Impact:** clients that send `"false"` as a string notify customers unintentionally; invalid input is not reported.
+- **Fix:** validate the body with a small serializer (`send_email = BooleanField(default=True)`).
+
+### Observed behaviour documented in the spec (not a weakness)
+- An unknown organizer or event slug returns **403**, not 404: pretix checks the token's permission on the organizer/event before the lookup, which avoids revealing which organizers exist (`x-reject-status: 403` in the spec; tested by `test_api_parameters.py`).
+- `?with_availability=` is only switched on by the exact value `true`; any other value is ignored (tested by `test_query_parameter`).
+
 ---
 
 ## Verified controls (no weakness found)
@@ -84,5 +116,6 @@ Risk ids (`PR-API-xx`) are proposed entries for the shared risk register
 | Reactivating a canceled order re-checks capacity | `test_rule3_paying_canceled_order_after_quota_sold_out_is_refused` |
 | Same idempotency key and same order code do not duplicate | `test_repeat_*` |
 | Double `mark_paid` creates one confirmed payment | `test_repeat_mark_paid_creates_one_payment` |
-| Read-only token cannot write (403); anonymous gets 401; unknown code 404 | `test_auth_*`, `test_unknown_order_code_is_404` |
+| Read-only token cannot write on any of the 12 write operations (403, or 404 for a non-existent target); anonymous gets 401 on all 19 operations; every documented status code (incl. 409) is produced | `test_api_status_coverage.py` (`test_anonymous_is_refused_on_every_operation`, `test_readonly_token_cannot_write_on_any_write_operation`, `test_documented_status`) |
+| Non-JSON bodies are refused with 415 on all write operations with a body | `test_non_json_body_is_rejected_with_415` |
 | Order code length 5..16 and charset enforced; positions 1..500 enforced | `test_create_order[...]` |

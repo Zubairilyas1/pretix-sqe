@@ -62,6 +62,10 @@ paths:
     get:
       operationId: listQuotas
       tags: [W1-organizer]
+      parameters:
+        # Only the literal "true" switches the availability fields on; any other value (including an
+        # invalid one) is treated as false and ignored - x-reject-status 200 = "ignored, fields absent".
+        - {name: with_availability, in: query, required: false, schema: {type: boolean, x-reject-status: 200}}
       responses:
         '200': {description: Paginated quota list, content: {application/json: {schema: {$ref: '#/components/schemas/PaginatedQuotas'}}}}
         '401': {$ref: '#/components/responses/Unauthorized'}
@@ -81,7 +85,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/Organizer'
       - $ref: '#/components/parameters/Event'
-      - {name: quota_id, in: path, required: true, schema: {type: integer}}
+      - {name: quota_id, in: path, required: true, schema: {type: integer, minimum: 1, x-runtime-ref: quota}}
     get:
       operationId: getQuota
       tags: [W1-organizer]
@@ -108,7 +112,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/Organizer'
       - $ref: '#/components/parameters/Event'
-      - {name: quota_id, in: path, required: true, schema: {type: integer}}
+      - {name: quota_id, in: path, required: true, schema: {type: integer, minimum: 1, x-runtime-ref: quota}}
     get:
       operationId: getQuotaAvailability
       tags: [shared-record]
@@ -141,7 +145,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/Organizer'
       - $ref: '#/components/parameters/Event'
-      - {name: id, in: path, required: true, schema: {type: integer}}
+      - {name: id, in: path, required: true, schema: {type: integer, minimum: 1, x-runtime-ref: cartposition}}
     delete:
       operationId: deleteCartPosition
       tags: [W2-purchase]
@@ -165,8 +169,8 @@ paths:
         - name: X-Idempotency-Key
           in: header
           required: false
+          schema: {type: string, maxLength: 190}   # ApiCall.idempotency_key is CharField(max_length=190)
           description: Repeating a request with the same key returns the first response and creates nothing new.
-          schema: {type: string}
       requestBody:
         required: true
         content: {application/json: {schema: {$ref: '#/components/schemas/OrderCreate'}}}
@@ -257,9 +261,12 @@ components:
       description: 'Team API token, sent as "Token <token>".'
 
   parameters:
-    Organizer: {name: organizer, in: path, required: true, schema: {type: string}}
-    Event: {name: event, in: path, required: true, schema: {type: string}}
-    OrderCode: {name: code, in: path, required: true, schema: {type: string}}
+    # x-runtime-ref: the value must name an existing object (generator: EP existing / unknown).
+    # x-reject-status: status a rejected value gets. pretix checks the token's permission on the
+    # organizer/event before looking it up, so an unknown slug gives 403, not 404 (observed, by design).
+    Organizer: {name: organizer, in: path, required: true, schema: {type: string, x-runtime-ref: organizer, x-reject-status: 403}}
+    Event: {name: event, in: path, required: true, schema: {type: string, x-runtime-ref: event, x-reject-status: 403}}
+    OrderCode: {name: code, in: path, required: true, schema: {type: string, pattern: '^[ABCDEFGHJKLMNPQRSTUVWXYZ1234567890]+$', x-runtime-ref: order}}
 
   responses:
     ValidationError:
@@ -366,9 +373,9 @@ components:
       type: object
       required: [item]
       properties:
-        item: {type: integer}
-        price: {type: number, format: decimal, nullable: true}
-        attendee_name: {type: string, nullable: true}
+        item: {type: integer, x-runtime-ref: item_id}
+        price: {type: number, format: decimal, nullable: true, minimum: 0, multipleOf: 0.01}   # assumption: no negative price (as Item.default_price)
+        attendee_name: {type: string, nullable: true, maxLength: 255}   # OrderPosition.attendee_name_cached max_length=255
 
     OrderCreate:
       type: object

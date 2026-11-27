@@ -9,7 +9,6 @@ from pathlib import Path
 import pytest
 import yaml
 from openapi_schema_validator import OAS30Validator
-
 from tests.team.sami.generator.generate_test_data import inline_refs
 
 SPEC = yaml.safe_load((Path(__file__).resolve().parent.parent / "openapi" / "pretix_orders_api.yaml")

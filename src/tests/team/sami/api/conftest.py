@@ -103,6 +103,8 @@ class Api:
             return [self.fill(v) for v in value]
         if value == "{{item_id}}":
             return self.item.pk
+        if value == "{{unknown_item_id}}":
+            return self.item.pk + 100000
         return value
 
     def order_payload(self, n_positions=1, **overrides):
@@ -151,7 +153,10 @@ def apply_case(baseline, case):
     *parents, leaf = case["field"].split(".")
     target = payload
     for p in parents:
-        target = target.setdefault(p, {})
+        if p.endswith("[]"):          # e.g. positions[].price -> first element of the list
+            target = target[p[:-2]][0]
+        else:
+            target = target.setdefault(p, {})
     kind = case["value_kind"]
     if kind == "missing":
         target.pop(leaf, None)
