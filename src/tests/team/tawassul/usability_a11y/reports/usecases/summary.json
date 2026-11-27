@@ -1,0 +1,176 @@
+{
+  "screens": {
+    "uc1": {
+      "use_case": "UC-1 configure item and quota",
+      "screen": "Create a new product",
+      "url": "http://localhost:8000/control/event/perf-org/perf-conf/items/add",
+      "lighthouse": {
+        "accessibility": 93,
+        "best-practices": 100,
+        "seo": 50
+      },
+      "axe_rules_violated": 2,
+      "axe_elements": 3
+    },
+    "uc2": {
+      "use_case": "UC-2 publish event / sales window",
+      "screen": "Shop status (go live)",
+      "url": "http://localhost:8000/control/event/perf-org/perf-conf/live/",
+      "lighthouse": {
+        "accessibility": 96,
+        "best-practices": 100,
+        "seo": 50
+      },
+      "axe_rules_violated": 1,
+      "axe_elements": 1
+    },
+    "uc3": {
+      "use_case": "UC-3 checkout",
+      "screen": "Checkout - your information",
+      "url": "http://localhost:8000/perf-org/perf-conf/checkout/questions/",
+      "lighthouse": {
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 54
+      },
+      "axe_rules_violated": 0,
+      "axe_elements": 0
+    },
+    "uc4": {
+      "use_case": "UC-4 apply voucher",
+      "screen": "Voucher redemption",
+      "url": "http://localhost:8000/perf-org/perf-conf/redeem?voucher=SQE-VOUCHER-1",
+      "lighthouse": {
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 54
+      },
+      "axe_rules_violated": 0,
+      "axe_elements": 0
+    },
+    "uc5": {
+      "use_case": "UC-5 sold-out category",
+      "screen": "Shop page with a sold-out product",
+      "url": "http://localhost:8000/perf-org/perf-conf/",
+      "lighthouse": {
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 91
+      },
+      "axe_rules_violated": 0,
+      "axe_elements": 0
+    },
+    "uc6": {
+      "use_case": "UC-6 cancel pending order",
+      "screen": "Cancel order",
+      "url": "http://localhost:8000/perf-org/perf-conf/order/CVTDJ/gg5rkta8f6du666b/cancel",
+      "lighthouse": {
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 54
+      },
+      "axe_rules_violated": 0,
+      "axe_elements": 0
+    }
+  },
+  "findings": [
+    {
+      "rule": "aria-input-field-name",
+      "element": "#select2-id_category-container",
+      "screens": [
+        "uc1"
+      ],
+      "found_by": [
+        "Lighthouse (accessibility)",
+        "axe"
+      ],
+      "impact": "serious",
+      "help": "ARIA input fields must have an accessible name"
+    },
+    {
+      "rule": "color-contrast",
+      "element": ".context-meta",
+      "screens": [
+        "uc1",
+        "uc2"
+      ],
+      "found_by": [
+        "Lighthouse (accessibility)",
+        "axe"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "element": ".select2-selection__placeholder",
+      "screens": [
+        "uc1"
+      ],
+      "found_by": [
+        "Lighthouse (accessibility)",
+        "axe"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "crawlable-anchors",
+      "element": "div.lb-outerContainer > div.lb-container > div.lb-loader > a.lb-cancel",
+      "screens": [
+        "uc1",
+        "uc2"
+      ],
+      "found_by": [
+        "Lighthouse (seo)"
+      ],
+      "impact": "seo",
+      "help": "Links are not crawlable"
+    },
+    {
+      "rule": "is-crawlable",
+      "element": "(page)",
+      "screens": [
+        "uc4",
+        "uc6"
+      ],
+      "found_by": [
+        "Lighthouse (seo)"
+      ],
+      "impact": "seo",
+      "help": "Page is blocked from indexing"
+    },
+    {
+      "rule": "is-crawlable",
+      "element": "http://localhost:8000/robots.txt",
+      "screens": [
+        "uc1",
+        "uc2",
+        "uc3",
+        "uc6"
+      ],
+      "found_by": [
+        "Lighthouse (seo)"
+      ],
+      "impact": "seo",
+      "help": "Page is blocked from indexing"
+    },
+    {
+      "rule": "meta-description",
+      "element": "(page)",
+      "screens": [
+        "uc1",
+        "uc2",
+        "uc3",
+        "uc4",
+        "uc5",
+        "uc6"
+      ],
+      "found_by": [
+        "Lighthouse (seo)"
+      ],
+      "impact": "seo",
+      "help": "Document does not have a meta description"
+    }
+  ]
+}
