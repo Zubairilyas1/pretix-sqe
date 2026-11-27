@@ -66,7 +66,9 @@ Mutation testing (from the repository root): `python src/tests/team/zubair/mutat
 ## Tool versions
 Python 3.11.15, Django 5.2.19, pytest 9.2.0, pytest-django 4.14.0, pytest-cov 7.1.0, coverage.py 7.17.5, fakeredis 2.40.0,
 Cosmic Ray 8.9.0, Playwright 1.65.2 (Chromium), axe-playwright-python 0.1.9, Lighthouse 12.8.2, OWASP ZAP 2.17.0, pip-audit,
-Grafana k6 OSS, SonarQube Community Build 25.1.0.102122 + sonar-scanner-cli 11.1, GitHub Actions `ubuntu-latest`.
+Grafana k6 OSS v0.57.0, SonarQube Community Build 25.1.0.102122 + sonar-scanner-cli 11.1 (CI) / pysonar 1.11.0 (local),
+pytest-html 4.1.1, waitress 3.0.2 + whitenoise 6.9.0 (perf server), Node 24.18.0 + Lighthouse 12, GitHub Actions `ubuntu-latest`.
+All extra Python packages are pinned in `src/tests/team/requirements-sqe.txt`.
 
 ## CI quality gate
 `.github/workflows/sqe_quality_gate.yml` runs on every pull request: Area 1 tests + coverage gate, Area 2 tests, Area 3 Playwright tests,

@@ -25,6 +25,7 @@ EC-3 is re-measured on the production database (PostgreSQL).
 | BR-3 order state machine | Unit state transitions via services, MCC O1; API transitions; UC-6 | Pass |
 | REST API items/quotas/carts/orders | EP + 3-point BVA from the OpenAPI generator on every body field, array item and path/query/header parameter; every documented status code; decision tables; idempotency; cross-workflow read-back | 490 pass, 30 strict xfail = 12 weaknesses |
 | Use cases UC-1..UC-6 (30 flows) | Playwright E2E with DB postconditions | 29 pass, 1 strict xfail (A3-D01) |
+| Full Area 3 suite (68 tests, Playwright HTML report) | Playwright, axe, RBAC, headers, recovery, CFG paths | 63 pass, 4 strict xfail, 1 transient SQLite-lock failure; that file re-run 3 x: 10/10 (`tawassul/README.md`) |
 | Usability tasks W1 + W2 | Playwright task tests incl. reject-then-correct and a W1 keyboard-only form | 3 pass |
 | Accessibility / SEO on every use-case screen | Lighthouse (accessibility, best practices, SEO) + axe, de-duplicated | 3 open a11y findings (organizer screens), missing meta description |
 | Accessibility, security, performance, recovery | axe, Lighthouse, RBAC tests, ZAP passive, pip-audit, k6, failure/recovery test | See Area 3 reports |

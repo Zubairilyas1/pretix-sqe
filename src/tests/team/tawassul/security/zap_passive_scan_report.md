@@ -55,3 +55,11 @@ cd src
 ../.venv/Scripts/python tests/team/tawassul/performance/perf_server.py      # in a second terminal
 ../.venv/Scripts/python tests/team/tawassul/security/zap_scan.py
 ```
+
+
+## Open item (27 Nov 2026)
+The final order confirmation of W2 still has not passed through the ZAP proxy (see above). A re-run was prepared
+(perf instance rebuilt, `seed_perf_event.py`) but the ZAP image could not be pulled: Docker Desktop could not reach
+Docker Hub from its VM ("no HTTPS proxy"), and Docker was later stopped. The order page's security headers and
+cookies are verified by `test_security_headers.py` instead, so the residual gap is only the passive-scan rule set on
+that one page. To close it: start the perf server and run `python tests/team/tawassul/security/zap_scan.py`.
