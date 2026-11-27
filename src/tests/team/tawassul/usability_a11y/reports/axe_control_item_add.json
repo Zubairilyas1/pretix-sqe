@@ -1,0 +1,30 @@
+{
+  "url": "http://localhost:59109/control/event/sqe-org/sqe-conf/items/add",
+  "violations": [
+    {
+      "rule": "aria-input-field-name",
+      "impact": "serious",
+      "wcag": [
+        "wcag2a",
+        "wcag412"
+      ],
+      "help": "ARIA input fields must have an accessible name",
+      "nodes": [
+        "#select2-id_category-container"
+      ]
+    },
+    {
+      "rule": "color-contrast",
+      "impact": "serious",
+      "wcag": [
+        "wcag2aa",
+        "wcag143"
+      ],
+      "help": "Elements must meet minimum color contrast ratio thresholds",
+      "nodes": [
+        ".context-meta",
+        ".select2-selection__placeholder"
+      ]
+    }
+  ]
+}

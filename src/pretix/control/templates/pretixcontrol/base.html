@@ -8,7 +8,7 @@
 {% load dialog %}
 {% load icon %}
 <!DOCTYPE html>
-<html{% if rtl %} dir="rtl" class="rtl"{% endif %}>
+{% get_current_language as LANGUAGE_CODE %}<html lang="{{ LANGUAGE_CODE }}"{% if rtl %} dir="rtl" class="rtl"{% endif %}>
 	<head>
 		<title>{% block title %}{% endblock %}{% if url_name != "index" %} :: {% endif %}
             {{ settings.PRETIX_INSTANCE_NAME }}</title>
@@ -129,7 +129,7 @@
                         </a>
                     {% endif %}
                     <a class="navbar-brand" href="{% url "control:index" %}">
-                        <img src="{% static "pretixbase/img/pretix-icon-white-mini.svg" %}" />
+                        <img src="{% static "pretixbase/img/pretix-icon-white-mini.svg" %}" alt="" />
                         <span>
                             {{ settings.PRETIX_INSTANCE_NAME }}
                         </span>
@@ -304,8 +304,8 @@
                                             {{ nav.label }}
                                         </a>
                                         {% if nav.children %}
-                                            <a href="#" class="arrow">
-                                                <span class="fa arrow"></span>
+                                            <a href="#" class="arrow" aria-label="{% blocktrans with label=nav.label %}Show or hide the {{ label }} submenu{% endblocktrans %}">
+                                                <span class="fa arrow" aria-hidden="true"></span>
                                             </a>
                                             <ul class="nav nav-second-level">
                                                 {% for item in nav.children %}
