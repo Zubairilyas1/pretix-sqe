@@ -1,0 +1,14 @@
+[cosmic-ray]
+module-path = "src/pretix/base/services/quotas.py"
+timeout = 300.0
+excluded-modules = []
+test-command = '"D:/5th Semester/4.SQE/Project/pretix/.venv/Scripts/python.exe" -m pytest -x -q -p no:cacheprovider src/tests/team/zubair --ignore=src/tests/team/zubair/test_custom_mutation_operators.py'
+
+[cosmic-ray.distributor]
+name = "http"
+
+[cosmic-ray.distributor.http]
+worker-urls = ["http://127.0.0.1:52618", "http://127.0.0.1:52622", "http://127.0.0.1:50372", "http://127.0.0.1:50375", "http://127.0.0.1:52958", "http://127.0.0.1:52961", "http://127.0.0.1:58298", "http://127.0.0.1:58303"]
+
+[cosmic-ray.filters.operators-filter]
+exclude-operators = ["core/RemoveDecorator", "core/VariableInserter"]

@@ -13,7 +13,7 @@ EC-3 is re-measured on the production database (PostgreSQL).
 | ID | Criterion | Target | Actual | Met? | Evidence |
 | :--- | :--- | :--- | :--- | :-: | :--- |
 | EC-1 | Business-rule coverage; failing unit/API tests | 100 % statement + branch on scope (documented infeasible branches only); 0 failing | `quotas.py` 239/239 statements, 143/144 branches (1 infeasible, justified); `is_available`, `is_available_by_time`, `_can_be_paid` 100 %/100 %; Area 1: 218 passed, Area 2: 243 passed + 17 strict xfail (tracked defects), 0 failed | **Yes** | `docs/sqe/zubair/COVERAGE_REPORT.md`, `evidence/` |
-| EC-2 | Mutation score on `quotas.py` incl. 2 custom operators | >= 85 % and every survivor classified | Run 1: 650/715 = 90.91 %; run 2 (after new tests): {{RUN2}}; all survivors classified | **Yes** | `docs/sqe/zubair/MUTATION_REPORT.md`, `zubair/mutation/results/` |
+| EC-2 | Mutation score on `quotas.py` incl. 2 custom operators | >= 85 % and every survivor classified | Run 1: 650/715 = 90.91 %; run 2 (after new tests): 692/715 = 96.78 %; all 65 run-1 survivors classified (23 equivalent, 42 killed) | **Yes** | `docs/sqe/zubair/MUTATION_REPORT.md`, `zubair/mutation/results/` |
 | EC-3 | Order operation performance | p95 <= 500 ms and < 1 % failures at 1 VU and 5 VUs | 1 VU: p95 435 ms, 0 % (met); 5 VUs: p95 1,485 ms, 24.0 % failures (SQLite "database is locked") | **No** | `tawassul/performance/k6_metrics_report.md` |
 
 ## 3. What was tested / not tested
