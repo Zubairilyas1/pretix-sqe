@@ -1,0 +1,74 @@
+{
+  "tool": "cosmic-ray",
+  "module": "src/pretix/base/services/quotas.py",
+  "total_mutants": 715,
+  "executed": 715,
+  "killed": 650,
+  "survived": 65,
+  "incompetent": 0,
+  "mutation_score_percent": 90.91,
+  "score_formula": "killed / (killed + survived) * 100 (incompetent mutants excluded)",
+  "by_operator": {
+    "core/ReplaceBinaryOperator": {
+      "killed": 334,
+      "survived": 29,
+      "incompetent": 0
+    },
+    "core/ReplaceComparisonOperator": {
+      "killed": 91,
+      "survived": 17,
+      "incompetent": 0
+    },
+    "core/ReplaceUnaryOperator": {
+      "killed": 21,
+      "survived": 0,
+      "incompetent": 0
+    },
+    "core/AddNot": {
+      "killed": 48,
+      "survived": 0,
+      "incompetent": 0
+    },
+    "core/ReplaceTrueWithFalse": {
+      "killed": 17,
+      "survived": 0,
+      "incompetent": 0
+    },
+    "core/ReplaceFalseWithTrue": {
+      "killed": 11,
+      "survived": 1,
+      "incompetent": 0
+    },
+    "core/ReplaceAndWithOr": {
+      "killed": 9,
+      "survived": 0,
+      "incompetent": 0
+    },
+    "core/ReplaceOrWithAnd": {
+      "killed": 4,
+      "survived": 1,
+      "incompetent": 0
+    },
+    "core/NumberReplacer": {
+      "killed": 51,
+      "survived": 15,
+      "incompetent": 0
+    },
+    "core/ZeroIterationForLoop": {
+      "killed": 20,
+      "survived": 1,
+      "incompetent": 0
+    },
+    "sqe/SwapAvailabilityVerdict": {
+      "killed": 29,
+      "survived": 1,
+      "incompetent": 0
+    },
+    "sqe/SwapOrderStatus": {
+      "killed": 15,
+      "survived": 0,
+      "incompetent": 0
+    }
+  },
+  "timestamp": "2026-11-27 13:58:55"
+}

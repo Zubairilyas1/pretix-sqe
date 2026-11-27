@@ -228,3 +228,110 @@ def test_voucher_overshooting_capacity(ev, team_item):
 
 def test_frozen_clock_fixture_does_not_leak():
     assert abs(quotas_module.time.time() - time.time()) < 5
+
+
+# ---------------------------------------------------------------- L243 count dictionaries are initialised
+@pytest.mark.django_db
+def test_counters_initialised_for_computed_quota(quota):
+    """Kills L243 ZeroIterationForLoop: every computed quota must appear in the count_* dicts with 0."""
+    qa = QuotaAvailability()
+    qa.queue(quota)
+    qa.compute()
+    for counter in (qa.count_paid_orders, qa.count_pending_orders, qa.count_cart,
+                    qa.count_vouchers, qa.count_waitinglist):
+        assert dict(counter) == {quota: 0}
+
+
+# ---------------------------------------------------------------- `==` vs `is` on subevent ids (L357/L414/L451/L487)
+@pytest.mark.django_db
+def test_subevent_match_uses_value_equality_for_large_ids(ev, team_item):
+    """Small ints are cached by CPython, so `q.subevent_id is line['subevent_id']` only differs from `==`
+    for ids above 256. Kills the four ReplaceComparisonOperator_Eq_Is mutants."""
+    from pretix.base.models import SubEvent
+    ev.has_subevents = True
+    ev.save()
+    se = SubEvent.objects.create(id=50001, event=ev, name="Big id", date_from=now() + datetime.timedelta(days=5))
+    q = Quota.objects.create(event=ev, subevent=se, name="Q-big", size=10)
+    q.items.add(team_item)
+    o = _order(ev, team_item, 0)
+    OrderPosition.objects.create(order=o, item=team_item, subevent=se, price=Decimal("10"), positionid=1)
+    Voucher.objects.create(event=ev, item=team_item, subevent=se, block_quota=True, max_usages=1)
+    CartPosition.objects.create(event=ev, item=team_item, subevent=se, cart_id="big", price=Decimal("10"),
+                                expires=now() + datetime.timedelta(minutes=10))
+    WaitingListEntry.objects.create(event=ev, item=team_item, subevent=se, email="big@example.org")
+    q = Quota.objects.get(pk=q.pk)  # fresh object: subevent_id is a new int, not the one used on creation
+    qa = QuotaAvailability(full_results=True)
+    qa.queue(q)
+    qa.compute()
+    assert (qa.count_paid_orders[q], qa.count_vouchers[q], qa.count_cart[q], qa.count_waitinglist[q]) == (1, 1, 1, 1)
+    assert qa.results[q] == (OK, 6)
+
+
+# ---------------------------------------------------------------- voucher item filters (L392, L394)
+@pytest.mark.django_db
+def test_voucher_for_other_product_is_ignored(ev, team_item, quota):
+    """Kills L392 `Q(variation_id__isnull=True) & Q(item_id__in=...)` -> `|`."""
+    other = Item.objects.create(event=ev, name="Other product", default_price=Decimal("5"))
+    Voucher.objects.create(event=ev, item=other, block_quota=True, max_usages=3)
+    qa = QuotaAvailability()
+    qa.queue(quota)
+    qa.compute()
+    assert qa.count_vouchers[quota] == 0
+    assert qa.results[quota] == (OK, 5)
+
+
+@pytest.mark.django_db
+def test_item_voucher_counts_when_item_is_in_quota_directly_and_via_variation(ev, team_item, quota):
+    """Item ids are the UNION of directly linked items and parents of linked variations.
+    Kills L394 `|` -> `^` and `|` -> `-` (both drop an item that is in both sets)."""
+    var = ItemVariation.objects.create(item=team_item, value="Red")
+    quota.variations.add(var)
+    Voucher.objects.create(event=ev, item=team_item, block_quota=True, max_usages=2)
+    qa = QuotaAvailability()
+    qa.queue(quota)
+    qa.compute()
+    assert qa.count_vouchers[quota] == 2
+    assert qa.results[quota] == (OK, 3)
+
+
+# ---------------------------------------------------------------- waiting-list auto-disable boundary (L461)
+@pytest.mark.django_db
+def test_waitinglist_auto_disable_exact_boundary(ev, team_item, quota, monkeypatch):
+    """At the exact auto-disable instant the waiting list is already off (`> now`, strict).
+    Kills L461 `>` -> `>=` by freezing quotas.now()."""
+    t = now().replace(microsecond=0)
+    monkeypatch.setattr(quotas_module, "now", lambda: t)
+    from pretix.base.reldate import RelativeDateWrapper
+    ev.settings.waiting_list_auto_disable = RelativeDateWrapper(t)
+    WaitingListEntry.objects.create(event=ev, item=team_item, email="w@example.org")
+    qa = QuotaAvailability()
+    qa.queue(quota)
+    qa.compute(now_dt=t)
+    assert qa.count_waitinglist[quota] == 0
+    assert qa.results[quota] == (OK, 5)
+
+
+@pytest.mark.django_db
+def test_waitinglist_auto_disable_relative_to_event_date(ev, team_item, quota):
+    """Relative date (1 day before the event start, 30 days away) needs the event as base:
+    kills L461 `q.subevent or q.event` -> `and` (would resolve against None)."""
+    from pretix.base.reldate import RelativeDate, RelativeDateWrapper
+    ev.settings.waiting_list_auto_disable = RelativeDateWrapper(
+        RelativeDate(days=1, time=None, base_date_name='event__date_from', minutes=None))
+    WaitingListEntry.objects.create(event=ev, item=team_item, email="w@example.org")
+    qa = QuotaAvailability()
+    qa.queue(quota)
+    qa.compute()
+    assert qa.count_waitinglist[quota] == 1
+    assert qa.results[quota] == (OK, 4)
+
+
+# ---------------------------------------------------------------- waiting list leaves exactly one seat (L490 <= 0 -> <= 1)
+@pytest.mark.django_db
+def test_waitinglist_leaving_one_seat_keeps_quota_available(ev, team_item, quota):
+    _order(ev, team_item, 3)
+    WaitingListEntry.objects.create(event=ev, item=team_item, email="one@example.org")
+    qa = QuotaAvailability()
+    qa.queue(quota)
+    qa.compute()
+    assert qa.results[quota] == (OK, 1)

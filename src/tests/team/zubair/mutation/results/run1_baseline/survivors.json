@@ -1,0 +1,522 @@
+[
+  {
+    "job_id": "a0eb62bf19744c76a9f1de75a6d80196",
+    "operator": "core/ReplaceFalseWithTrue",
+    "occurrence": 4,
+    "line": 121,
+    "col": 72,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -118,7 +118,7 @@\n     def queue(self, *quota):\n         self._queue += quota\n \n-    def compute(self, now_dt=None, allow_cache=False, allow_cache_stale=False):\n+    def compute(self, now_dt=None, allow_cache=False, allow_cache_stale=True):\n         \"\"\"\n         Compute the queued quotas. If ``allow_cache`` is set, results may also be taken from a cache that might\n         be a few minutes outdated. In this case, you may not rely on the results in the ``count_*`` properties."
+  },
+  {
+    "job_id": "a553b4670a004e188f96f892cb69a222",
+    "operator": "core/NumberReplacer",
+    "occurrence": 2,
+    "line": 151,
+    "col": 60,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -148,7 +148,7 @@\n                         if redisval is not None:\n                             data = [rv for rv in redisval.decode().split(',')]\n                             # Except for some rare situations, we don't want to use cache entries older than 2 minutes\n-                            if time.time() - int(data[2]) < 120 or allow_cache_stale:\n+                            if time.time() - int(data[2]) < 121 or allow_cache_stale:\n                                 quota_ids_set.remove(q.id)\n                                 if data[1] == \"None\":\n                                     self.results[q] = int(data[0]), None"
+  },
+  {
+    "job_id": "330de3f29d964ecdb9f1e33ac382a424",
+    "operator": "core/NumberReplacer",
+    "occurrence": 3,
+    "line": 151,
+    "col": 60,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -148,7 +148,7 @@\n                         if redisval is not None:\n                             data = [rv for rv in redisval.decode().split(',')]\n                             # Except for some rare situations, we don't want to use cache entries older than 2 minutes\n-                            if time.time() - int(data[2]) < 120 or allow_cache_stale:\n+                            if time.time() - int(data[2]) < 119 or allow_cache_stale:\n                                 quota_ids_set.remove(q.id)\n                                 if data[1] == \"None\":\n                                     self.results[q] = int(data[0]), None"
+  },
+  {
+    "job_id": "4e0d2504041448bba3138db14619e450",
+    "operator": "core/ReplaceBinaryOperator_Sub_Mod",
+    "occurrence": 0,
+    "line": 151,
+    "col": 43,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -148,7 +148,7 @@\n                         if redisval is not None:\n                             data = [rv for rv in redisval.decode().split(',')]\n                             # Except for some rare situations, we don't want to use cache entries older than 2 minutes\n-                            if time.time() - int(data[2]) < 120 or allow_cache_stale:\n+                            if time.time() % int(data[2]) < 120 or allow_cache_stale:\n                                 quota_ids_set.remove(q.id)\n                                 if data[1] == \"None\":\n                                     self.results[q] = int(data[0]), None"
+  },
+  {
+    "job_id": "356e939bf72344e39a7a03c1a019166f",
+    "operator": "core/ReplaceComparisonOperator_Lt_LtE",
+    "occurrence": 0,
+    "line": 151,
+    "col": 58,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -148,7 +148,7 @@\n                         if redisval is not None:\n                             data = [rv for rv in redisval.decode().split(',')]\n                             # Except for some rare situations, we don't want to use cache entries older than 2 minutes\n-                            if time.time() - int(data[2]) < 120 or allow_cache_stale:\n+                            if time.time() - int(data[2]) <= 120 or allow_cache_stale:\n                                 quota_ids_set.remove(q.id)\n                                 if data[1] == \"None\":\n                                     self.results[q] = int(data[0]), None"
+  },
+  {
+    "job_id": "a81a31c35007477a94652db38f94d83c",
+    "operator": "core/ReplaceComparisonOperator_Eq_GtE",
+    "occurrence": 0,
+    "line": 153,
+    "col": 43,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -150,7 +150,7 @@\n                             # Except for some rare situations, we don't want to use cache entries older than 2 minutes\n                             if time.time() - int(data[2]) < 120 or allow_cache_stale:\n                                 quota_ids_set.remove(q.id)\n-                                if data[1] == \"None\":\n+                                if data[1] >= \"None\":\n                                     self.results[q] = int(data[0]), None\n                                 else:\n                                     self.results[q] = int(data[0]), int(data[1])"
+  },
+  {
+    "job_id": "566ab7e6fa814d3993e8532aded8b812",
+    "operator": "core/NumberReplacer",
+    "occurrence": 12,
+    "line": 196,
+    "col": 93,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -193,7 +193,7 @@\n         lock_name = '_'.join([str(p) for p in sorted([q.pk for q in quotas])])\n         if rc.exists(f'quotas:availabilitycachewrite:{lock_name}{self._cache_key_suffix}'):\n             return\n-        rc.set(f'quotas:availabilitycachewrite:{lock_name}{self._cache_key_suffix}', '1', ex=10)\n+        rc.set(f'quotas:availabilitycachewrite:{lock_name}{self._cache_key_suffix}', '1', ex= 11)\n \n         update = defaultdict(list)\n         for q in quotas:"
+  },
+  {
+    "job_id": "2f10c00b14034c0b89617dd4eef91f35",
+    "operator": "core/NumberReplacer",
+    "occurrence": 13,
+    "line": 196,
+    "col": 93,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -193,7 +193,7 @@\n         lock_name = '_'.join([str(p) for p in sorted([q.pk for q in quotas])])\n         if rc.exists(f'quotas:availabilitycachewrite:{lock_name}{self._cache_key_suffix}'):\n             return\n-        rc.set(f'quotas:availabilitycachewrite:{lock_name}{self._cache_key_suffix}', '1', ex=10)\n+        rc.set(f'quotas:availabilitycachewrite:{lock_name}{self._cache_key_suffix}', '1', ex= 9)\n \n         update = defaultdict(list)\n         for q in quotas:"
+  },
+  {
+    "job_id": "344acab7ab9e4c9d92ff771ed5be633e",
+    "operator": "core/NumberReplacer",
+    "occurrence": 14,
+    "line": 212,
+    "col": 85,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3601 * 24 * 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "e9396250cc82438db3cfc5857ed82ee5",
+    "operator": "core/NumberReplacer",
+    "occurrence": 15,
+    "line": 212,
+    "col": 85,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3599 * 24 * 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "23d187f0ddb14f84ac7f8a2448a5f549",
+    "operator": "core/NumberReplacer",
+    "occurrence": 16,
+    "line": 212,
+    "col": 92,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 25 * 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "d55fd7f6d07a409c94b828223682e45c",
+    "operator": "core/NumberReplacer",
+    "occurrence": 17,
+    "line": 212,
+    "col": 92,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 23 * 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "0cb229d00dd5416e8dfb5eadff59b242",
+    "operator": "core/NumberReplacer",
+    "occurrence": 18,
+    "line": 212,
+    "col": 97,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 8)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "17262fbcb77b4184af0852e2fe88af5b",
+    "operator": "core/NumberReplacer",
+    "occurrence": 19,
+    "line": 212,
+    "col": 97,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 6)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "d9e93728bb2d40b8998d573d7b7b0957",
+    "operator": "core/ReplaceBinaryOperator_Mul_Add",
+    "occurrence": 0,
+    "line": 212,
+    "col": 90,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 + 24 * 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "d76eb1544c4b4675b9b58db4d8e0c267",
+    "operator": "core/ReplaceBinaryOperator_Mul_Add",
+    "occurrence": 1,
+    "line": 212,
+    "col": 95,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 + 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "a180a56aec144079bcc1bb7143c07ea4",
+    "operator": "core/ReplaceBinaryOperator_Mul_BitOr",
+    "occurrence": 0,
+    "line": 212,
+    "col": 90,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 | 24 * 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "521df94e158b40bd89aa6157cf36a45f",
+    "operator": "core/ReplaceBinaryOperator_Mul_BitOr",
+    "occurrence": 1,
+    "line": 212,
+    "col": 95,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 | 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "bedd0fb2a190457387caedac19715f15",
+    "operator": "core/ReplaceBinaryOperator_Mul_BitXor",
+    "occurrence": 0,
+    "line": 212,
+    "col": 90,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 ^ 24 * 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "b3610012e3564f5c966126aa5e58f1b9",
+    "operator": "core/ReplaceBinaryOperator_Mul_BitXor",
+    "occurrence": 1,
+    "line": 212,
+    "col": 95,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 ^ 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "560864e4c88a48bab552117b97886641",
+    "operator": "core/ReplaceBinaryOperator_Mul_FloorDiv",
+    "occurrence": 0,
+    "line": 212,
+    "col": 90,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 // 24 * 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "899536f14782498095433ea95df6e7d5",
+    "operator": "core/ReplaceBinaryOperator_Mul_FloorDiv",
+    "occurrence": 1,
+    "line": 212,
+    "col": 95,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 // 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "d4678b4f314345ef9c338b48cdcee81a",
+    "operator": "core/ReplaceBinaryOperator_Mul_LShift",
+    "occurrence": 1,
+    "line": 212,
+    "col": 95,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 << 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "d39ce71e7e9c47f9b02c6a199d0500d7",
+    "operator": "core/ReplaceBinaryOperator_Mul_Mod",
+    "occurrence": 1,
+    "line": 212,
+    "col": 95,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 % 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "bacfa9ec6df045958f2349f9132cd148",
+    "operator": "core/ReplaceBinaryOperator_Mul_Pow",
+    "occurrence": 1,
+    "line": 212,
+    "col": 95,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 ** 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "a2791257141f4a48bb55c4dbf210bdb5",
+    "operator": "core/ReplaceBinaryOperator_Mul_RShift",
+    "occurrence": 1,
+    "line": 212,
+    "col": 95,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 >> 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "bd9470c266cd42ab9b00757bdc3646d7",
+    "operator": "core/ReplaceBinaryOperator_Mul_Sub",
+    "occurrence": 0,
+    "line": 212,
+    "col": 90,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 - 24 * 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "b0b63d67427d460487141c647dfb79ee",
+    "operator": "core/ReplaceBinaryOperator_Mul_Sub",
+    "occurrence": 1,
+    "line": 212,
+    "col": 95,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -209,7 +209,7 @@\n             # To make sure old events do not fill up our redis instance, we set an expiry on the cache. However, we set it\n             # on 7 days even though we mostly ignore values older than 2 monites. The reasoning is that we have some places\n             # where we set allow_cache_stale and use the old entries anyways to save on performance.\n-            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 * 7)\n+            rc.expire(f'quotas:{eventid}:availabilitycache{self._cache_key_suffix}', 3600 * 24 - 7)\n \n         # We used to also delete item_quota_cache:* from the event cache here, but as the cache\n         # gets more complex, this does not seem worth it. The cache is only present for up to"
+  },
+  {
+    "job_id": "bec1bb849ba3443e9901205aaca0a374",
+    "operator": "core/ReplaceComparisonOperator_LtE_Lt",
+    "occurrence": 0,
+    "line": 221,
+    "col": 34,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -218,7 +218,7 @@\n \n     def _close(self, quotas):\n         for q in quotas:\n-            if self.results[q][0] <= Quota.AVAILABILITY_ORDERED and q.close_when_sold_out and not q.closed:\n+            if self.results[q][0] < Quota.AVAILABILITY_ORDERED and q.close_when_sold_out and not q.closed:\n                 q.closed = True\n                 q.save(update_fields=['closed'])\n                 q.log_action('pretix.event.quota.closed')"
+  },
+  {
+    "job_id": "97cccd6296d349d0aef4f67261d809dc",
+    "operator": "sqe/SwapAvailabilityVerdict",
+    "occurrence": 0,
+    "line": 221,
+    "col": 43,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -218,7 +218,7 @@\n \n     def _close(self, quotas):\n         for q in quotas:\n-            if self.results[q][0] <= Quota.AVAILABILITY_ORDERED and q.close_when_sold_out and not q.closed:\n+            if self.results[q][0] <= Quota.AVAILABILITY_GONE and q.close_when_sold_out and not q.closed:\n                 q.closed = True\n                 q.save(update_fields=['closed'])\n                 q.log_action('pretix.event.quota.closed')"
+  },
+  {
+    "job_id": "8ab45653de3d4c6faae2639e458b0d38",
+    "operator": "core/ZeroIterationForLoop",
+    "occurrence": 8,
+    "line": 243,
+    "col": 17,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -240,7 +240,7 @@\n                     return\n \n         size_left = Counter({q: (sys.maxsize if s is None else s) for q, s in self.sizes.items()})\n-        for q in quotas:\n+        for q in []:\n             self.count_paid_orders[q] = 0\n             self.count_pending_orders[q] = 0\n             self.count_cart[q] = 0"
+  },
+  {
+    "job_id": "206a929f6edf4e6eae8a5a1618617f68",
+    "operator": "core/NumberReplacer",
+    "occurrence": 33,
+    "line": 292,
+    "col": 34,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -289,7 +289,7 @@\n \n         for q in quotas:\n             if q not in self.results:\n-                if size_left[q] > 0:\n+                if size_left[q] > -1:\n                     self.results[q] = Quota.AVAILABILITY_OK, size_left[q]\n                 else:\n                     raise ValueError(\"inconclusive quota\")"
+  },
+  {
+    "job_id": "c8a7bd59457749bc98788e488f401b19",
+    "operator": "core/ReplaceComparisonOperator_Gt_GtE",
+    "occurrence": 0,
+    "line": 292,
+    "col": 32,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -289,7 +289,7 @@\n \n         for q in quotas:\n             if q not in self.results:\n-                if size_left[q] > 0:\n+                if size_left[q] >= 0:\n                     self.results[q] = Quota.AVAILABILITY_OK, size_left[q]\n                 else:\n                     raise ValueError(\"inconclusive quota\")"
+  },
+  {
+    "job_id": "f73fa0b9ef644060b0151e62123a98ad",
+    "operator": "core/ReplaceBinaryOperator_BitAnd_BitOr",
+    "occurrence": 0,
+    "line": 309,
+    "col": 45,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -306,7 +306,7 @@\n             order__event_id__in=events,\n         ).filter(seq).filter(\n             Q(\n-                Q(variation_id__isnull=True) &\n+                Q(variation_id__isnull=True) |\n                 Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n             ) | Q(\n                 variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids})"
+  },
+  {
+    "job_id": "2306c94d66e94a5a873ce7792edd2875",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 0,
+    "line": 311,
+    "col": 14,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -308,7 +308,7 @@\n             Q(\n                 Q(variation_id__isnull=True) &\n                 Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n-            ) | Q(\n+            ) ^ Q(\n                 variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids})\n         ).filter(\n             ~Q(Q(ignore_from_quota_while_blocked=True) & Q(blocked__isnull=False))"
+  },
+  {
+    "job_id": "5b514fa2664d42a28119eb719d4092a8",
+    "operator": "core/NumberReplacer",
+    "occurrence": 34,
+    "line": 340,
+    "col": 35,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -337,7 +337,7 @@\n                 is_exited=Case(\n                     When(\n                         Q(last_entry__isnull=False) & Q(last_exit__isnull=False) & Q(last_exit__gt=F('last_entry')),\n-                        then=Value(1, output_field=models.IntegerField()),\n+                        then=Value( 2, output_field=models.IntegerField()),\n                     ),\n                     default=Value(0, output_field=models.IntegerField()),\n                     output_field=models.IntegerField(),"
+  },
+  {
+    "job_id": "87eec54b94dd4b7a90e315fe385067ca",
+    "operator": "core/NumberReplacer",
+    "occurrence": 38,
+    "line": 348,
+    "col": 32,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -345,7 +345,7 @@\n             )\n         else:\n             op_lookup = op_lookup.annotate(\n-                is_exited=Value(0, output_field=models.IntegerField())\n+                is_exited=Value( 1, output_field=models.IntegerField())\n             )\n         op_lookup = op_lookup.values('order__status', 'item_id', 'subevent_id', 'variation_id', 'is_exited').annotate(c=Count('*'))\n         for line in sorted(op_lookup, key=lambda li: (int(li['is_exited']), li['order__status']), reverse=True):  # p before n, exited before non-exited"
+  },
+  {
+    "job_id": "5a65c3c1d4bc48bc9a560fa25c58f2c3",
+    "operator": "core/NumberReplacer",
+    "occurrence": 39,
+    "line": 348,
+    "col": 32,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -345,7 +345,7 @@\n             )\n         else:\n             op_lookup = op_lookup.annotate(\n-                is_exited=Value(0, output_field=models.IntegerField())\n+                is_exited=Value( -1, output_field=models.IntegerField())\n             )\n         op_lookup = op_lookup.values('order__status', 'item_id', 'subevent_id', 'variation_id', 'is_exited').annotate(c=Count('*'))\n         for line in sorted(op_lookup, key=lambda li: (int(li['is_exited']), li['order__status']), reverse=True):  # p before n, exited before non-exited"
+  },
+  {
+    "job_id": "a8e016af792044cbb244c446a646fbc1",
+    "operator": "core/ReplaceComparisonOperator_Eq_Is",
+    "occurrence": 1,
+    "line": 357,
+    "col": 33,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -354,7 +354,7 @@\n             else:\n                 qs = self._item_to_quotas[line['item_id']]\n             for q in qs:\n-                if q.subevent_id == line['subevent_id']:\n+                if q.subevent_id is line['subevent_id']:\n                     if line['order__status'] == Order.STATUS_PAID:\n                         self.count_paid_orders[q] += line['c']\n                         q.cached_availability_paid_orders = self.count_paid_orders[q]"
+  },
+  {
+    "job_id": "55c49e3354114d1693535a999e412862",
+    "operator": "core/ReplaceComparisonOperator_Eq_GtE",
+    "occurrence": 2,
+    "line": 358,
+    "col": 45,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -355,7 +355,7 @@\n                 qs = self._item_to_quotas[line['item_id']]\n             for q in qs:\n                 if q.subevent_id == line['subevent_id']:\n-                    if line['order__status'] == Order.STATUS_PAID:\n+                    if line['order__status'] >= Order.STATUS_PAID:\n                         self.count_paid_orders[q] += line['c']\n                         q.cached_availability_paid_orders = self.count_paid_orders[q]\n                     elif line['order__status'] == Order.STATUS_PENDING:"
+  },
+  {
+    "job_id": "98b1589ad5be4f07bed090019b2f7a59",
+    "operator": "core/ReplaceComparisonOperator_Eq_GtE",
+    "occurrence": 3,
+    "line": 361,
+    "col": 47,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -358,7 +358,7 @@\n                     if line['order__status'] == Order.STATUS_PAID:\n                         self.count_paid_orders[q] += line['c']\n                         q.cached_availability_paid_orders = self.count_paid_orders[q]\n-                    elif line['order__status'] == Order.STATUS_PENDING:\n+                    elif line['order__status'] >= Order.STATUS_PENDING:\n                         self.count_pending_orders[q] += line['c']\n                     if q.release_after_exit and line['is_exited']:\n                         self.count_exited_orders[q] += line['c']"
+  },
+  {
+    "job_id": "00c8c5b19e5e46d78f03118377f53ea9",
+    "operator": "core/ReplaceComparisonOperator_Eq_IsNot",
+    "occurrence": 3,
+    "line": 361,
+    "col": 47,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -358,7 +358,7 @@\n                     if line['order__status'] == Order.STATUS_PAID:\n                         self.count_paid_orders[q] += line['c']\n                         q.cached_availability_paid_orders = self.count_paid_orders[q]\n-                    elif line['order__status'] == Order.STATUS_PENDING:\n+                    elif line['order__status'] is not Order.STATUS_PENDING:\n                         self.count_pending_orders[q] += line['c']\n                     if q.release_after_exit and line['is_exited']:\n                         self.count_exited_orders[q] += line['c']"
+  },
+  {
+    "job_id": "9989cc5e81644a2c9bdda887ddf038c1",
+    "operator": "core/ReplaceComparisonOperator_Eq_LtE",
+    "occurrence": 3,
+    "line": 361,
+    "col": 47,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -358,7 +358,7 @@\n                     if line['order__status'] == Order.STATUS_PAID:\n                         self.count_paid_orders[q] += line['c']\n                         q.cached_availability_paid_orders = self.count_paid_orders[q]\n-                    elif line['order__status'] == Order.STATUS_PENDING:\n+                    elif line['order__status'] <= Order.STATUS_PENDING:\n                         self.count_pending_orders[q] += line['c']\n                     if q.release_after_exit and line['is_exited']:\n                         self.count_exited_orders[q] += line['c']"
+  },
+  {
+    "job_id": "30c964a1965c479894d6017656c0e92c",
+    "operator": "core/ReplaceComparisonOperator_Eq_GtE",
+    "occurrence": 4,
+    "line": 368,
+    "col": 53,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -365,7 +365,7 @@\n                     else:\n                         size_left[q] -= line['c']\n                         if size_left[q] <= 0 and q not in self.results:\n-                            if line['order__status'] == Order.STATUS_PAID:\n+                            if line['order__status'] >= Order.STATUS_PAID:\n                                 self.results[q] = Quota.AVAILABILITY_GONE, 0\n                             else:\n                                 self.results[q] = Quota.AVAILABILITY_ORDERED, 0"
+  },
+  {
+    "job_id": "34ca232aff5b46a5964bbbca40c74545",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 1,
+    "line": 389,
+    "col": 42,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -386,7 +386,7 @@\n             Q(event_id__in=events) &\n             seq &\n             Q(block_quota=True) &\n-            Q(Q(valid_until__isnull=True) | Q(valid_until__gte=now_dt)) &\n+            Q(Q(valid_until__isnull=True) ^ Q(valid_until__gte=now_dt)) &\n             Q(\n                 Q(\n                     Q(variation_id__isnull=True) &"
+  },
+  {
+    "job_id": "6ad17c87bc2e4344b048b4f4761c5c2b",
+    "operator": "core/ReplaceBinaryOperator_BitAnd_BitOr",
+    "occurrence": 8,
+    "line": 392,
+    "col": 49,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -389,7 +389,7 @@\n             Q(Q(valid_until__isnull=True) | Q(valid_until__gte=now_dt)) &\n             Q(\n                 Q(\n-                    Q(variation_id__isnull=True) &\n+                    Q(variation_id__isnull=True) |\n                     Q(item_id__in=(\n                         {i['item_id'] for i in q_items if i['quota_id'] in quota_ids} |\n                         {i['itemvariation__item_id'] for i in q_vars if i['quota_id'] in quota_ids}"
+  },
+  {
+    "job_id": "2ebb21b8bc5f42008cf375d22206aa1c",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 2,
+    "line": 394,
+    "col": 86,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -391,7 +391,7 @@\n                 Q(\n                     Q(variation_id__isnull=True) &\n                     Q(item_id__in=(\n-                        {i['item_id'] for i in q_items if i['quota_id'] in quota_ids} |\n+                        {i['item_id'] for i in q_items if i['quota_id'] in quota_ids} ^\n                         {i['itemvariation__item_id'] for i in q_vars if i['quota_id'] in quota_ids}\n                     ))\n                 ) | Q("
+  },
+  {
+    "job_id": "56513602597f4a0dbc7449fdf46bd08d",
+    "operator": "core/ReplaceBinaryOperator_BitOr_Sub",
+    "occurrence": 2,
+    "line": 394,
+    "col": 86,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -391,7 +391,7 @@\n                 Q(\n                     Q(variation_id__isnull=True) &\n                     Q(item_id__in=(\n-                        {i['item_id'] for i in q_items if i['quota_id'] in quota_ids} |\n+                        {i['item_id'] for i in q_items if i['quota_id'] in quota_ids} -\n                         {i['itemvariation__item_id'] for i in q_vars if i['quota_id'] in quota_ids}\n                     ))\n                 ) | Q("
+  },
+  {
+    "job_id": "ab14931f23d44e15b94c9ed0276b441f",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 3,
+    "line": 397,
+    "col": 18,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -394,7 +394,7 @@\n                         {i['item_id'] for i in q_items if i['quota_id'] in quota_ids} |\n                         {i['itemvariation__item_id'] for i in q_vars if i['quota_id'] in quota_ids}\n                     ))\n-                ) | Q(\n+                ) ^ Q(\n                     variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids}\n                 ) | Q(\n                     quota_id__in=[q.pk for q in quotas]"
+  },
+  {
+    "job_id": "f1f90ce136d14814b11903abaddb20cf",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 4,
+    "line": 399,
+    "col": 18,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -396,7 +396,7 @@\n                     ))\n                 ) | Q(\n                     variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids}\n-                ) | Q(\n+                ) ^ Q(\n                     quota_id__in=[q.pk for q in quotas]\n                 )\n             )"
+  },
+  {
+    "job_id": "b07e26ede371486bbfac03a89ad2617f",
+    "operator": "core/ReplaceComparisonOperator_Eq_Is",
+    "occurrence": 5,
+    "line": 414,
+    "col": 33,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -411,7 +411,7 @@\n             else:\n                 qs = [self._quota_objects[line['quota_id']]]\n             for q in qs:\n-                if q.subevent_id == line['subevent_id']:\n+                if q.subevent_id is line['subevent_id']:\n                     size_left[q] -= line['free']\n                     self.count_vouchers[q] += line['free']\n                     if q not in self.results and size_left[q] <= 0:"
+  },
+  {
+    "job_id": "5ffd033d102e4362bf0c4ededd9767b4",
+    "operator": "core/ReplaceComparisonOperator_LtE_Eq",
+    "occurrence": 2,
+    "line": 417,
+    "col": 62,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -414,7 +414,7 @@\n                 if q.subevent_id == line['subevent_id']:\n                     size_left[q] -= line['free']\n                     self.count_vouchers[q] += line['free']\n-                    if q not in self.results and size_left[q] <= 0:\n+                    if q not in self.results and size_left[q] == 0:\n                         self.results[q] = Quota.AVAILABILITY_ORDERED, 0\n \n     def _compute_carts(self, quotas, q_items, q_vars, size_left, now_dt):"
+  },
+  {
+    "job_id": "49ff1fab55474751a31926af38238bf2",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 5,
+    "line": 433,
+    "col": 16,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -430,7 +430,7 @@\n             Q(expires__gte=now_dt) &\n             Q(\n                 Q(voucher__isnull=True)\n-                | Q(voucher__block_quota=False)\n+                ^ Q(voucher__block_quota=False)\n                 | Q(voucher__valid_until__lt=now_dt)\n             ) &\n             Q("
+  },
+  {
+    "job_id": "a486de0d533b4380bc08eca5c6f3128d",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 6,
+    "line": 434,
+    "col": 16,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -431,7 +431,7 @@\n             Q(\n                 Q(voucher__isnull=True)\n                 | Q(voucher__block_quota=False)\n-                | Q(voucher__valid_until__lt=now_dt)\n+                ^ Q(voucher__valid_until__lt=now_dt)\n             ) &\n             Q(\n                 Q("
+  },
+  {
+    "job_id": "1c34a362cdd44d4cb986d19bb8934611",
+    "operator": "core/ReplaceBinaryOperator_BitAnd_BitOr",
+    "occurrence": 13,
+    "line": 438,
+    "col": 49,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -435,7 +435,7 @@\n             ) &\n             Q(\n                 Q(\n-                    Q(variation_id__isnull=True) &\n+                    Q(variation_id__isnull=True) |\n                     Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n                 ) | Q(\n                     variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids}"
+  },
+  {
+    "job_id": "9a9d9d79b2d94312a2e6f3de9a55c990",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 7,
+    "line": 440,
+    "col": 18,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -437,7 +437,7 @@\n                 Q(\n                     Q(variation_id__isnull=True) &\n                     Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n-                ) | Q(\n+                ) ^ Q(\n                     variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids}\n                 )\n             )"
+  },
+  {
+    "job_id": "de3640b7561c4aba8cf1ae830f493375",
+    "operator": "core/ReplaceComparisonOperator_Eq_Is",
+    "occurrence": 6,
+    "line": 451,
+    "col": 33,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -448,7 +448,7 @@\n             else:\n                 qs = self._item_to_quotas[line['item_id']]\n             for q in qs:\n-                if q.subevent_id == line['subevent_id']:\n+                if q.subevent_id is line['subevent_id']:\n                     size_left[q] -= line['c']\n                     self.count_cart[q] += line['c']\n                     if q not in self.results and size_left[q] <= 0:"
+  },
+  {
+    "job_id": "c28e8d2fdbcb4ff4a36f65bd0ccfd668",
+    "operator": "core/ReplaceComparisonOperator_LtE_Eq",
+    "occurrence": 3,
+    "line": 454,
+    "col": 62,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -451,7 +451,7 @@\n                 if q.subevent_id == line['subevent_id']:\n                     size_left[q] -= line['c']\n                     self.count_cart[q] += line['c']\n-                    if q not in self.results and size_left[q] <= 0:\n+                    if q not in self.results and size_left[q] == 0:\n                         self.results[q] = Quota.AVAILABILITY_RESERVED, 0\n \n     def _compute_waitinglist(self, quotas, q_items, q_vars, size_left):"
+  },
+  {
+    "job_id": "a43be1c86d7a4a38865e3926b6add01a",
+    "operator": "core/ReplaceComparisonOperator_Gt_GtE",
+    "occurrence": 1,
+    "line": 461,
+    "col": 140,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -458,7 +458,7 @@\n         prefetch_related_objects(quotas, \"event\", \"event__organizer\")\n         quotas = [\n             q for q in quotas\n-            if not q.event.settings.waiting_list_auto_disable or q.event.settings.waiting_list_auto_disable.datetime(q.subevent or q.event) > now()\n+            if not q.event.settings.waiting_list_auto_disable or q.event.settings.waiting_list_auto_disable.datetime(q.subevent or q.event) >= now()\n         ]\n \n         events = {q.event_id for q in quotas}"
+  },
+  {
+    "job_id": "618b1e4a78c3411fa64b4d8611bb353b",
+    "operator": "core/ReplaceOrWithAnd",
+    "occurrence": 4,
+    "line": 461,
+    "col": 128,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -458,7 +458,7 @@\n         prefetch_related_objects(quotas, \"event\", \"event__organizer\")\n         quotas = [\n             q for q in quotas\n-            if not q.event.settings.waiting_list_auto_disable or q.event.settings.waiting_list_auto_disable.datetime(q.subevent or q.event) > now()\n+            if not q.event.settings.waiting_list_auto_disable or q.event.settings.waiting_list_auto_disable.datetime(q.subevent and q.event) > now()\n         ]\n \n         events = {q.event_id for q in quotas}"
+  },
+  {
+    "job_id": "872049f025d2482799d43edb08c0f6c5",
+    "operator": "core/ReplaceBinaryOperator_BitAnd_BitOr",
+    "occurrence": 17,
+    "line": 476,
+    "col": 49,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -473,7 +473,7 @@\n             seq &\n             Q(\n                 Q(\n-                    Q(variation_id__isnull=True) &\n+                    Q(variation_id__isnull=True) |\n                     Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n                 ) | Q(variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids})\n             )"
+  },
+  {
+    "job_id": "4877582a7d6a4c188adc9b92b8830ab5",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 8,
+    "line": 478,
+    "col": 18,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -475,7 +475,7 @@\n                 Q(\n                     Q(variation_id__isnull=True) &\n                     Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n-                ) | Q(variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids})\n+                ) ^ Q(variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids})\n             )\n         ).order_by().values('item_id', 'subevent_id', 'variation_id').annotate(c=Count('*'))\n         for line in w_lookup:"
+  },
+  {
+    "job_id": "5d83247a56dc4c759f2b4f02b263d5bc",
+    "operator": "core/ReplaceComparisonOperator_Eq_Is",
+    "occurrence": 7,
+    "line": 487,
+    "col": 33,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -484,7 +484,7 @@\n             else:\n                 qs = self._item_to_quotas[line['item_id']]\n             for q in qs:\n-                if q.subevent_id == line['subevent_id']:\n+                if q.subevent_id is line['subevent_id']:\n                     size_left[q] -= line['c']\n                     self.count_waitinglist[q] += line['c']\n                     if q not in self.results and size_left[q] <= 0:"
+  },
+  {
+    "job_id": "2853fceb7a9142769a689959d0b15a41",
+    "operator": "core/NumberReplacer",
+    "occurrence": 56,
+    "line": 490,
+    "col": 65,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -487,7 +487,7 @@\n                 if q.subevent_id == line['subevent_id']:\n                     size_left[q] -= line['c']\n                     self.count_waitinglist[q] += line['c']\n-                    if q not in self.results and size_left[q] <= 0:\n+                    if q not in self.results and size_left[q] <= 1:\n                         self.results[q] = Quota.AVAILABILITY_ORDERED, 0\n \n     def _compute_early_outs(self, quotas):"
+  },
+  {
+    "job_id": "53dbd5501e1f4e208a04817f6b64aa8f",
+    "operator": "core/ReplaceComparisonOperator_LtE_Eq",
+    "occurrence": 4,
+    "line": 490,
+    "col": 62,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -487,7 +487,7 @@\n                 if q.subevent_id == line['subevent_id']:\n                     size_left[q] -= line['c']\n                     self.count_waitinglist[q] += line['c']\n-                    if q not in self.results and size_left[q] <= 0:\n+                    if q not in self.results and size_left[q] == 0:\n                         self.results[q] = Quota.AVAILABILITY_ORDERED, 0\n \n     def _compute_early_outs(self, quotas):"
+  }
+]
