@@ -57,7 +57,7 @@ h1.part { page-break-before: always; font-size: 17pt; border-bottom: 1.5px solid
 h1.part.first { page-break-before: avoid; }
 h2 { font-size: 13.5pt; margin-top: 14px; } h3 { font-size: 12pt; } h4, h5 { font-size: 11pt; }
 table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; font-size: 8.6pt; page-break-inside: auto; }
-th, td { border: 0.6px solid #555; padding: 3px 4px; vertical-align: top; word-break: break-word; }
+th, td { border: 0.6px solid #555; padding: 3px 4px; vertical-align: top; word-break: normal; overflow-wrap: anywhere; hyphens: none; min-width: 4.6em; }
 th { background: #e8e8e8; } tr { page-break-inside: avoid; }
 code { font-family: Consolas, monospace; font-size: 8.6pt; background: #f2f2f2; padding: 0 2px; }
 pre { background: #f5f5f5; border: 0.5px solid #bbb; padding: 6px; font-size: 8pt; white-space: pre-wrap; }
