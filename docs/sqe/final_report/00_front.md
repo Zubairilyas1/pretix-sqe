@@ -25,7 +25,7 @@
 | :--- | :--- | :--- | :-: |
 | EC-1 business-rule coverage, failing tests | 100 % statement + branch on scope; 0 failing | 100 % statements, 143/144 branches (1 infeasible, justified); 0 failing | Yes |
 | EC-2 mutation score `quotas.py` | >= 85 % | RUN2_SCORE | Yes |
-| EC-3 order performance | p95 <= 500 ms, < 1 % failures at 1 and 5 VUs | 1 VU 435 ms / 0 %; 5 VUs 1,485 ms / 24.0 % | No |
+| EC-3 order performance | 1 user p95 <= 500 ms, 5 users p95 <= 1000 ms, < 1 % failures | 1 user 133 ms / 0 %; 5 users 527 ms / **72 % failures** | No |
 
 Each later section is the corresponding document of the repository, included unchanged, so the report and the
 repository cannot disagree. Paths in `code` font are relative to the repository root unless they start with

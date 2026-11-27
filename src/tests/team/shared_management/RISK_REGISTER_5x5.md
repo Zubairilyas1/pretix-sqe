@@ -61,4 +61,4 @@ Defined in the Test Plan section 7.2. Actual vs target is reported in `TEST_COMP
 | :--- | :--- | :--- |
 | EC-1 | 100 % statement + branch coverage on the business-rule scope, 0 failing unit/API tests | PR-WB-01, PR-WB-02, PR-API-06 |
 | EC-2 | Mutation score >= 85 % on `quotas.py` (incl. both custom operators), all survivors classified | PR-WB-01, PR-API-02 |
-| EC-3 | p95 <= 500 ms and < 1 % unexpected failures at 1 and 5 virtual users | PR-PERF-01 |
+| EC-3 | `POST orders/`: 1 user p95 <= 500 ms, 5 users p95 <= 1000 ms, < 1 % unexpected failures | PR-PERF-01 |

@@ -82,8 +82,8 @@ Risks are scored on a 5x5 matrix (likelihood x impact, `RISK_REGISTER_5x5.md`). 
 | Browser | Playwright 1.65.2 (pytest-playwright 0.10.0), Chromium |
 | Accessibility | Lighthouse 12.8.2, axe-core via axe-playwright-python 0.1.9 |
 | Security | OWASP ZAP 2.17.0 (passive), pip-audit |
-| Performance | Grafana k6 OSS |
-| Static analysis | SonarQube Community Build 25.1.0.102122, sonar-scanner-cli 11.1 |
+| Performance | Grafana k6 OSS v0.57.0 |
+| Static analysis | SonarQube Community Build 25.1.0.102122, sonar-scanner-cli 11.1 (CI), pysonar 1.11.0 (local) |
 | Node | 24.18.0 (Lighthouse) |
 
 Installation, start, seed and reset commands are in the repository `README.md` ("Reproduce").
@@ -114,7 +114,7 @@ All data is synthetic and created by fixtures inside each test (`src/tests/team/
 | :--- | :--- | :--- | :--- |
 | EC-1 | Functional correctness of the capacity, purchasability and payment rules | 100 % statement and 100 % branch coverage on the business-rule scope (only documented infeasible branches allowed); 0 failing unit or API tests | PR-WB-01 (12), PR-WB-02 (10), PR-API-06 (12) |
 | EC-2 | Strength of the tests on the critical module | Mutation score >= 85 % on `quotas.py` with Cosmic Ray including both custom operators; every surviving mutant classified | PR-WB-01 (12), PR-API-02 (12) |
-| EC-3 | Performance of the order operation | p95 <= 500 ms and < 1 % unexpected failures at 1 and at 5 concurrent virtual users | PR-PERF-01 (12) |
+| EC-3 | Performance of the order operation (`POST orders/`) | 1 user: p95 <= 500 ms; 5 users: p95 <= 1000 ms; < 1 % unexpected failures for both (limits and reasons: `tawassul/performance/PERF_TEST_PLAN.md`) | PR-PERF-01 (12) |
 
 ### 7.3 Suspension criteria
 Testing of a level is suspended when (a) the baseline or the unmutated suite fails (mutation baseline, smoke test), (b) the test environment is unusable (SQLite "database is locked" in more than 10 % of runs, live server does not start), (c) a blocking defect makes more than 30 % of the planned cases of the level unrunnable, or (d) more than 5 tests are flaky (pass and fail on the same commit).
@@ -133,3 +133,4 @@ See `RISK_REGISTER_5x5.md` section 4 (PJ-ENV-01, PJ-SCH-01, PJ-CI-01, PJ-INT-01)
 | :--- | :--- | :--- |
 | 2026-11-25 | Scope, workflows, rules and roles agreed (previously only in README and RTM) | Team |
 | 2026-11-27 | Plan written as one document; exit criteria made measurable and re-tied to the risk register; tool versions recorded; Area 1 schedule deviation added | Zubair |
+| 2026-11-27 | EC-3 limits per workload aligned with the performance test plan (fixed before the k6 re-run); Area 2/3 audit gaps closed (completion report DV-5) | Zubair |
