@@ -1,0 +1,17 @@
+{
+  "shop": {
+    "accessibility": 100,
+    "best-practices": 100,
+    "failed_a11y_audits": [],
+    "audited_url": "http://localhost:8000/perf-org/perf-conf/"
+  },
+  "control_item_add": {
+    "accessibility": 93,
+    "best-practices": 100,
+    "failed_a11y_audits": [
+      "aria-input-field-name",
+      "color-contrast"
+    ],
+    "audited_url": "http://localhost:8000/control/event/perf-org/perf-conf/items/add"
+  }
+}

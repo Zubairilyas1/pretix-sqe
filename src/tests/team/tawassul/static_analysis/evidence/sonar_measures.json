@@ -1,0 +1,116 @@
+{
+  "project": {
+    "bugs": "3",
+    "complexity": "1965",
+    "reliability_rating": "3.0",
+    "code_smells": "5",
+    "duplicated_lines_density": "1.2",
+    "cognitive_complexity": "2941",
+    "security_rating": "1.0",
+    "ncloc": "7701",
+    "vulnerabilities": "0",
+    "security_hotspots": "0",
+    "sqale_index": "27",
+    "sqale_rating": "1.0"
+  },
+  "files": {
+    "pretix/base/services/cart.py": {
+      "bugs": "3",
+      "code_smells": "1",
+      "cognitive_complexity": "860",
+      "complexity": "458",
+      "ncloc": "1469"
+    },
+    "pretix/control/views/item.py": {
+      "cognitive_complexity": "314",
+      "complexity": "305",
+      "ncloc": "1434"
+    },
+    "pretix/base/models/items.py": {
+      "code_smells": "4",
+      "cognitive_complexity": "415",
+      "complexity": "375",
+      "ncloc": "1723"
+    },
+    "pretix/base/services/orders.py": {
+      "cognitive_complexity": "1352",
+      "complexity": "827",
+      "ncloc": "3075"
+    }
+  },
+  "issues": [
+    {
+      "rule": "python:S1845",
+      "severity": "BLOCKER",
+      "type": "CODE_SMELL",
+      "component": "pretix-sqe-w1w2:pretix/base/models/items.py",
+      "line": 128,
+      "message": "Rename field \"cross_selling_condition\" to prevent any misunderstanding/clash with field \"CROSS_SELLING_CONDITION\" defined on line 123",
+      "effort": "10min"
+    },
+    {
+      "rule": "python:S8510",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "component": "pretix-sqe-w1w2:pretix/base/services/cart.py",
+      "line": 1410,
+      "message": "Rename this loop variable; it shadows the outer loop variable \"k\".",
+      "effort": "2min"
+    },
+    {
+      "rule": "python:S1656",
+      "severity": "MAJOR",
+      "type": "BUG",
+      "component": "pretix-sqe-w1w2:pretix/base/services/cart.py",
+      "line": 1059,
+      "message": "Remove or correct this useless self-assignment.",
+      "effort": "3min"
+    },
+    {
+      "rule": "python:S1656",
+      "severity": "MAJOR",
+      "type": "BUG",
+      "component": "pretix-sqe-w1w2:pretix/base/services/cart.py",
+      "line": 1065,
+      "message": "Remove or correct this useless self-assignment.",
+      "effort": "3min"
+    },
+    {
+      "rule": "python:S1656",
+      "severity": "MAJOR",
+      "type": "BUG",
+      "component": "pretix-sqe-w1w2:pretix/base/services/cart.py",
+      "line": 1060,
+      "message": "Remove or correct this useless self-assignment.",
+      "effort": "3min"
+    },
+    {
+      "rule": "python:S8500",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "pretix-sqe-w1w2:pretix/base/models/items.py",
+      "line": 1112,
+      "message": "Add the missing comparison methods or use \"functools.total_ordering\".",
+      "effort": "5min"
+    },
+    {
+      "rule": "python:S8500",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "pretix-sqe-w1w2:pretix/base/models/items.py",
+      "line": 75,
+      "message": "Add the missing comparison methods or use \"functools.total_ordering\".",
+      "effort": "5min"
+    },
+    {
+      "rule": "python:S8500",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "component": "pretix-sqe-w1w2:pretix/base/models/items.py",
+      "line": 1578,
+      "message": "Add the missing comparison methods or use \"functools.total_ordering\".",
+      "effort": "5min"
+    }
+  ],
+  "hotspots": []
+}
