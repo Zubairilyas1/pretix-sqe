@@ -42,7 +42,7 @@ jobs:
       - name: Install pretix and test tooling
         run: |
           uv venv --python "$PYTHON_VERSION"
-          uv pip install -e ".[dev]" fakeredis cosmic-ray==8.9.0 -e src/tests/team/zubair/mutation/sqe_mutation_operators
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt -e src/tests/team/zubair/mutation/sqe_mutation_operators
       - name: Run Area 1 tests with branch coverage
         working-directory: src
         run: |
@@ -75,7 +75,7 @@ jobs:
       - name: Install
         run: |
           uv venv --python "$PYTHON_VERSION"
-          uv pip install -e ".[dev]"
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt
       - name: Run Area 2 suite (strict xfail = tracked defects)
         working-directory: src
         run: ../.venv/bin/python -m pytest tests/team/sami -q -p no:cacheprovider --junitxml=../area2-junit.xml
@@ -97,7 +97,7 @@ jobs:
       - name: Install
         run: |
           uv venv --python "$PYTHON_VERSION"
-          uv pip install -e ".[dev]" pytest-html
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt
           .venv/bin/python -m playwright install --with-deps chromium
       - name: Run Area 3 suite
         working-directory: src
@@ -129,7 +129,7 @@ jobs:
       - name: Install
         run: |
           uv venv --python "$PYTHON_VERSION"
-          uv pip install -e ".[dev]" fakeredis
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt
       - name: Produce coverage report for SonarQube
         working-directory: src
         run: |
@@ -168,7 +168,7 @@ jobs:
       - name: Install
         run: |
           uv venv --python "$PYTHON_VERSION"
-          uv pip install -e ".[dev]" fakeredis cosmic-ray==8.9.0 -e src/tests/team/zubair/mutation/sqe_mutation_operators
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt -e src/tests/team/zubair/mutation/sqe_mutation_operators
       - name: Run Cosmic Ray and enforce the mutation threshold
         run: |
           .venv/bin/python src/tests/team/zubair/mutation/run_mutation.py \

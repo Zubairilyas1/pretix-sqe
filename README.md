@@ -27,7 +27,7 @@ Workflows, requirements (FR-01..08), business rules (BR-1..4) and roles: `src/te
 git clone https://github.com/Zubairilyas1/pretix-sqe.git && cd pretix-sqe
 git log --oneline | grep -m1 c0d887738          # baseline commit is in the history
 uv venv --python 3.11                            # or: python -m venv .venv
-uv pip install -e ".[dev]" fakeredis pytest-html cosmic-ray==8.9.0 \
+uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt \
     -e src/tests/team/zubair/mutation/sqe_mutation_operators
 .venv/bin/python -m playwright install chromium  # Windows: .venv\Scripts\python
 ```
