@@ -18,22 +18,23 @@ Likelihood: 1 rare, 2 unlikely, 3 possible, 4 likely, 5 almost certain. Impact: 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **5** | | | | | |
 | **4** | | PR-API-05, PR-A11Y-02 (8) | PR-PERF-01, PR-A11Y-01, PJ-ENV-01 (12) | | PJ-INT-01 (20) |
-| **3** | | PR-API-03, PR-SEC-02 (6) | PR-WB-03, PR-CODE-01, PJ-SCH-01, PJ-CI-01 (9) | PR-WB-01, PR-API-01, PR-API-02, PR-API-06, PR-VAL-01 (12) | |
+| **3** | | PR-API-03, PR-API-07, PR-SEC-02 (6) | PR-WB-03, PR-CODE-01, PJ-SCH-01, PJ-CI-01 (9) | PR-WB-01, PR-API-01, PR-API-02, PR-API-06, PR-VAL-01 (12) | |
 | **2** | | | PR-SEC-03, PR-SEC-04 (6) | PR-API-04, PR-SEC-01 (8) | PR-WB-02, PR-DATA-01 (10) |
 | **1** | | | | | |
 
-## 3. Product risks (20)
+## 3. Product risks (21)
 | ID | Owner | Risk | L | I | Score | Level | Technique and depth applied (evidence) |
 | :--- | :--- | :--- | :-: | :-: | :-: | :-: | :--- |
 | PR-WB-01 | Zubair | Capacity limit off by one (`<` vs `<=`, wrong counting of carts/vouchers/waiting list) lets a quota oversell or close too early | 3 | 4 | 12 | High | 100 % stmt+branch of `quotas.py`, 3-point BVA at size-1/size/size+1, MCC Q5/Q6, mutation (Cosmic Ray + `SwapAvailabilityVerdict`) - `zubair/test_quota_availability_whitebox.py`, `zubair/mutation/` |
 | PR-WB-02 | Zubair | Order paid although it must not be (unapproved, canceled, expired with late payments off, last payment date over) | 2 | 5 | 10 | High | MCC O1 + branch coverage of `_can_be_paid`, state transition tests (8 allowed, 6 disallowed) through the real services, `SwapOrderStatus` operator - `zubair/test_whitebox_order_rules.py`, `test_order_state_transitions.py` |
 | PR-WB-03 | Zubair | Availability served from the Redis cache is stale (sold out but shown as available) | 3 | 3 | 9 | Medium | Cache freshness MCC Q2 (fresh / stale / stale allowed), write lock, cache-miss tests with `fakeredis` |
-| PR-API-01 | Sami | Negative item / cart price accepted by the REST API | 3 | 4 | 12 | High | Generator BVA `min-1`; defect W-01/W-02 (strict xfail) |
+| PR-API-01 | Sami | Negative item / cart / order-position price accepted by the REST API | 3 | 4 | 12 | High | Generator BVA `min-1` on every price input incl. array items; W-01, W-02, W-09 (strict xfail) |
 | PR-API-02 | Sami | Retry without idempotency key creates a duplicate order | 3 | 4 | 12 | High | Repeated-request tests; W-03 characterisation test |
 | PR-API-03 | Sami | Empty or over-long item name accepted | 3 | 2 | 6 | Medium | String-length BVA; W-04 |
 | PR-API-04 | Sami | Quota size above 32-bit range accepted (crash on PostgreSQL) | 2 | 4 | 8 | Medium | BVA `max+1`; W-05 |
 | PR-API-05 | Sami | `with_availability` ignored on the quota detail endpoint | 4 | 2 | 8 | Medium | Detail vs list test; W-06 |
 | PR-API-06 | Sami | Order API ignores sale window and per-order limits | 3 | 4 | 12 | High | Rule tests; W-07, W-08 |
+| PR-API-07 | Sami | Order state actions accept an invalid body and act on it (`send_email` by truthiness) | 3 | 2 | 6 | Medium | Generator EP on the action body; W-12 |
 | PR-SEC-01 | Tawassul | Vulnerable dependency `oauthlib 3.3.1` | 2 | 4 | 8 | Medium | pip-audit; A3-D04 |
 | PR-SEC-02 | Tawassul | Missing `X-Content-Type-Options` / `Referrer-Policy` | 3 | 2 | 6 | Medium | Header tests + ZAP; A3-D02 |
 | PR-SEC-03 | Tawassul | End-of-life Bootstrap 3.4.1 with XSS advisories | 2 | 3 | 6 | Medium | ZAP 10003; A3-D05 |

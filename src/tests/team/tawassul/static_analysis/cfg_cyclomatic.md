@@ -65,7 +65,14 @@ flowchart TD
 
 All three methods agree, so **V(G) = 6**. At most 6 linearly independent paths exist, and 6 tests are an upper bound for basis-path testing.
 
-For comparison, counting each `if` statement as one decision, as SonarQube's cyclomatic metric does, gives 3 + 1 = 4. The difference of 2 comes from the two `and` operators. This is why condition-level paths need more tests than statement-level branches.
+**Comparison with SonarQube (measured 27 Nov 2026).** The function was copied unchanged into a file of its own and analysed
+with SonarQube Community Build 25.1 (`sonar_function_complexity.py`, evidence `evidence/sonar_function_complexity.json`):
+SonarQube reports **cyclomatic complexity 6** (and cognitive complexity 5). This equals the hand-calculated V(G) = 6,
+because SonarQube's Python complexity counts the function entry plus every `if` **and every boolean operator**
+(`and`/`or`): 1 + 3 `if` + 2 `and` = 6. (An earlier version of this document assumed SonarQube counts only `if`
+statements and would report 4; the measurement shows that assumption was wrong.) Counting only the three `if`
+statements would give 4 - that is the *statement-level* branch count, which is why condition-level coverage needs more
+tests than branch coverage.
 
 ## Basis paths and feasibility
 

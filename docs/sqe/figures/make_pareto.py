@@ -10,8 +10,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 CATEGORIES = [  # (category, defect ids) - must match the defect log table
-    ("Input validation", ["W-01", "W-02", "W-04", "W-05", "A3-D01"]),
-    ("Rule not enforced /\nAPI contract", ["W-03", "W-06", "W-07", "W-08"]),
+    ("Input validation", ["W-01", "W-02", "W-04", "W-05", "W-09", "W-10", "W-11", "A3-D01"]),
+    ("Rule not enforced /\nAPI contract", ["W-03", "W-06", "W-07", "W-08", "W-12"]),
     ("Security config /\ndependencies", ["A3-D02", "A3-D04", "A3-D05"]),
     ("Logic error", ["A3-D06", "D-Z01"]),
     ("Accessibility", ["A3-D03"]),

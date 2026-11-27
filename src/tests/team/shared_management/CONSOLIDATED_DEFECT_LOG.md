@@ -20,6 +20,10 @@ Triage decisions: **Fix** (we fix it in this repository), **Report upstream** (d
 | W-06 | `with_availability` ignored on quota detail | Minor | P3 | Open | Accept (workaround: `/availability/`) | `test_negative_rules.py` (strict xfail) | PR-API-05 | |
 | W-07 | Order API ignores item sale window | Major | P1 | Open | Report upstream (document or enforce unless `force`) | `test_negative_rules.py` rule 2 (strict xfail) | PR-API-06 | |
 | W-08 | Order API ignores min/max per order | Major | P1 | Open | Report upstream | `test_negative_rules.py` rule 1 BVA (strict xfail) | PR-API-06 | |
+| W-09 | Negative order-position price accepted by `POST orders/` | Major | P1 | Open | Report upstream (same family as W-01) | `test_api_ep_bva.py` positions[].price BVA min-1 (strict xfail) | PR-API-01 | |
+| W-10 | `X-Idempotency-Key` longer than 190 characters accepted | Minor | P3 | Open | Report upstream | `test_api_parameters.py` header BVA len_max+1 (strict xfail) | PR-API-02 | |
+| W-11 | `attendee_name` longer than 255 characters accepted | Minor | P3 | Open | Report upstream | `test_api_ep_bva.py` positions[].attendee_name BVA len_max+1 (strict xfail) | PR-API-03 | |
+| W-12 | Order action endpoints do not validate their body (`send_email` by truthiness) | Minor | P2 | Open | Report upstream | `test_api_ep_bva.py::test_order_action_body` (strict xfail) | PR-API-07 | |
 | A3-D01 | Back office saves a negative item price | Major | P1 | Open | Report upstream (same root cause as W-01) | `tawassul/usecases` UC1-E1 (strict xfail) | PR-VAL-01 | |
 | A3-D02 | `X-Content-Type-Options` / `Referrer-Policy` not sent | Minor | P2 | Open | Fix in deployment config | `tawassul/security/test_security_headers.py`, ZAP 10021 | PR-SEC-02 | |
 | A3-D03 | Back office fails WCAG 2.1 A (lang, alt, link names) | Major | P1 | Fixed | Fixed in `pretixcontrol/base.html` (commit `dc2e75a6e`) | axe + Lighthouse before/after | PR-A11Y-01 | |
@@ -33,8 +37,9 @@ a method `Order.transition_to()` that does not exist in pretix. They were remove
 ## 2. Root cause analysis
 
 ### RCA-1: W-01 / W-02 / A3-D01 - negative prices are stored (Major)
-**Problem.** `POST items/` with `default_price: "-0.01"` and `POST cartpositions/` with `price: "-1.00"` return 201;
-the back-office form also saves `-5.00`. Three entry points, one cause.
+**Problem.** `POST items/` with `default_price: "-0.01"`, `POST cartpositions/` with `price: "-1.00"` and
+`POST orders/` with `positions[].price: "-0.01"` (W-09) return 201; the back-office form also saves `-5.00`. Four entry
+points, one cause.
 
 **5 Whys**
 1. Why is a negative price stored? Neither the serializers nor the form reject it.
@@ -86,16 +91,16 @@ the back-office form also saves `-5.00`. Three entry points, one cause.
 ## 3. Pareto analysis by category
 | Category | Defects | Count | % | Cumulative % |
 | :--- | :--- | :-: | :-: | :-: |
-| Input validation | W-01, W-02, W-04, W-05, A3-D01 | 5 | 33.3 | 33.3 |
-| Business rule not enforced / API contract | W-03, W-06, W-07, W-08 | 4 | 26.7 | 60.0 |
-| Security configuration and dependencies | A3-D02, A3-D04, A3-D05 | 3 | 20.0 | 80.0 |
-| Logic error in code | A3-D06, D-Z01 | 2 | 13.3 | 93.3 |
-| Accessibility | A3-D03 | 1 | 6.7 | 100.0 |
-| **Total** | | **15** | **100** | |
+| Input validation | W-01, W-02, W-04, W-05, W-09, W-10, W-11, A3-D01 | 8 | 42.1 | 42.1 |
+| Business rule not enforced / API contract | W-03, W-06, W-07, W-08, W-12 | 5 | 26.3 | 68.4 |
+| Security configuration and dependencies | A3-D02, A3-D04, A3-D05 | 3 | 15.8 | 84.2 |
+| Logic error in code | A3-D06, D-Z01 | 2 | 10.5 | 94.7 |
+| Accessibility | A3-D03 | 1 | 5.3 | 100.0 |
+| **Total** | | **19** | **100** | |
 
 Chart: `docs/sqe/figures/pareto_defects.png` (generated from this table by `docs/sqe/figures/make_pareto.py`).
 
-**Reading.** Three categories (input validation, rules not enforced in the API, security configuration) hold 80 % of the
-defects. Two of them come from the same pattern: a rule is checked in one entry point (the shop) but not in the others
+**Reading.** Three categories (input validation, rules not enforced in the API, security configuration) hold 84 % of the
+defects; the first two alone hold 68 %. Two of them come from the same pattern: a rule is checked in one entry point (the shop) but not in the others
 (API, back office). The most effective preventive action is therefore one shared validation per rule, tested through
 every entry point (EP/BVA at API level, use cases at UI level).
