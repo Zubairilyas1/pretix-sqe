@@ -1,0 +1,24 @@
+# Cosmic Ray session for the critical business-rule module (Area 1).
+# Run from the repository root (the directory that contains src/):
+#   cosmic-ray init     src/tests/team/zubair/mutation/cosmic-ray.toml mutation.sqlite
+#   cosmic-ray baseline src/tests/team/zubair/mutation/cosmic-ray.toml
+#   cosmic-ray exec     src/tests/team/zubair/mutation/cosmic-ray.toml mutation.sqlite
+#   cr-report mutation.sqlite --show-pending
+# or simply: python src/tests/team/zubair/mutation/run_mutation.py
+[cosmic-ray]
+module-path = "src/pretix/base/services/quotas.py"
+timeout = 300.0
+excluded-modules = []
+test-command = "python -m pytest -x -q -p no:cacheprovider -p no:randomly src/tests/team/zubair --ignore=src/tests/team/zubair/test_custom_mutation_operators.py"
+
+[cosmic-ray.distributor]
+name = "local"
+
+# Operators that cannot change behaviour of this module are filtered out by run_mutation.py
+# (see MUTATION_REPORT.md, section "Operator selection"), everything else - including the two
+# custom operators sqe/SwapAvailabilityVerdict and sqe/SwapOrderStatus - is applied.
+[cosmic-ray.filters.operators-filter]
+exclude-operators = [
+  "core/RemoveDecorator",
+  "core/VariableInserter",
+]
