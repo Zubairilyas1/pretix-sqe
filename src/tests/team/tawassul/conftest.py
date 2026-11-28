@@ -30,6 +30,25 @@ CUSTOMER_EMAIL = "customer@sqe.test"
 
 
 @pytest.fixture(scope="session")
+def django_db_modify_db_settings(django_db_modify_db_settings_parallel_suffix, tmp_path_factory):
+    """Area 3 runs a real server (``live_server``) next to the test thread, so it uses a
+    temporary SQLite *file* instead of Django's default shared in-memory test database.
+
+    With the in-memory database pytest-django hands the live server the test thread's own
+    connection, and SQLite's shared cache reports lock conflicts at once instead of waiting.
+    On the CI runner this made pytest-django's flush fail ("cannot start a transaction within
+    a transaction") while the server was still answering a request, and every later test then
+    failed on the data left behind; locally it showed up as an occasional
+    "database table is locked: django_session". With a file every server thread has its own
+    connection, WAL lets reads run during a write, and a write waits up to 30 s for a lock."""
+    from django.conf import settings
+    db = settings.DATABASES["default"]
+    if db["ENGINE"].endswith("sqlite3"):
+        db.setdefault("TEST", {})["NAME"] = str(tmp_path_factory.mktemp("area3_db") / "area3.sqlite3")
+        db.setdefault("OPTIONS", {}).update({"timeout": 30, "init_command": "PRAGMA journal_mode=WAL;"})
+
+
+@pytest.fixture(scope="session")
 def browser_context_args(browser_context_args):
     return {**browser_context_args, "viewport": {"width": 1280, "height": 900}, "locale": "en-US"}
 
