@@ -58,8 +58,11 @@ def main():
         ("gh_13_commits_zubair_branch", f"{URL}/commits/zubair", False),
         ("gh_14_workflow_file", f"{URL}/blob/zubair/.github/workflows/sqe_quality_gate.yml", False),
     ]
+    deploy = latest_run("main", "success", "push")
+    if deploy:
+        pages.append(("gh_16_deploy_run_main", f"{URL}/actions/runs/{deploy}", True))
     for r in fix_runs:
-        if r["conclusion"]:                                     # finished runs only
+        if r["conclusion"] in ("success", "failure"):                                     # finished runs only
             pages.append((f"gh_15_fix_run_{r['conclusion']}", f"{URL}/actions/runs/{r['databaseId']}", True))
     pages = [pg_ for pg_ in pages if "/runs/None" not in pg_[1]]   # runs that have not finished yet
     with sync_playwright() as p:

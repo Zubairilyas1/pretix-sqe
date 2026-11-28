@@ -70,7 +70,14 @@ Branch `fix/dz01-waitinglist-now-dt`:
 * test commit `0c434e822`: run [46116198842](https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116198842),
   Gate 1 **failed** with `1 failed, 219 passed` (`assert qa.count_waitinglist[quota] == 0`, got 1);
 * fix commit `12e0a96ae`: run [46117938901](https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46117938901),
-  Gates 1-4 **passed**. Its Gate 5 still used the single-job version and was cancelled at the 120-minute limit (see section 1); after PR #15 is merged the branch is updated so that PR #36 runs the sharded Gate 5.
+  Gates 1-4 **passed**; its Gate 5 still used the single-job version and was cancelled at the 120-minute limit (see
+  section 1). After PR #15 was merged the branch was updated with `main`; run
+  [46139643240](https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46139643240) passed all five gates including
+  the sharded Gate 5, and PR #36 was merged (closing issue #16).
+
+**Deploy on main:** the push of the PR #15 merge to `main` ran all gates and then the deploy job (run
+[46139613932](https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46139613932)), which only runs on `main` after
+every gate has passed.
 
 Locally verified: before the fix `1 failed, 1 passed`; after the fix the Area 1 suite and pretix's own `tests/base/test_models.py` pass (408 passed).
 
@@ -80,5 +87,6 @@ Locally verified: before the fix `1 failed, 1 passed`; after the fix the Area 1 
 | First run of the new workflow (push to `zubair`) | https://github.com/Zubairilyas1/pretix-sqe/actions/runs/45969206974 - gate 1 and gate 4 passed; gates 2 and 3 failed with pytest exit code 2 because the team's extra packages were not installed. Fixed in commit "ci(sqe): install the pinned extra packages ..." |
 | Main pull request (`zubair` into `main`) | https://github.com/Zubairilyas1/pretix-sqe/pull/15, all gates green in run https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46131379965 (44 min; Gate 5 merged 8 shards: 715/715 mutants executed, 692 killed, 23 survived, 96.78 %) |
 | Blocked PR | https://github.com/Zubairilyas1/pretix-sqe/pull/35, run https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116193890 |
-| Fix PR (red run, green run) | https://github.com/Zubairilyas1/pretix-sqe/pull/36, red https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116198842, green https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46117938901 |
+| Fix PR (red run, green run) | https://github.com/Zubairilyas1/pretix-sqe/pull/36, red https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116198842, green https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46139643240 (all five gates), merged 28 Nov |
+| Deploy job on `main` | https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46139613932 |
 | Branch protection | required status checks on `main`: Gate 1, Gate 2, Gate 3, Gate 4, Gate 5; 1 approving review; no force pushes or deletions. The settings page is only visible to the repository admin, so the evidence is the GitHub API output (figure in chapter 7, `gh api repos/Zubairilyas1/pretix-sqe/branches/main/protection`). |

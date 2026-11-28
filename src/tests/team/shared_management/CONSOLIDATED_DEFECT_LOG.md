@@ -11,7 +11,7 @@ Triage decisions: **Fix** (we fix it in this repository), **Report upstream** (d
 ## 1. Defects
 | ID | Title | Severity | Priority | Status | Triage | Found by (evidence) | Risk | Issue |
 | :--- | :--- | :-: | :-: | :-: | :--- | :--- | :-: | :-: |
-| D-Z01 | Waiting-list auto-disable compared with real `now()` instead of `now_dt` in `QuotaAvailability` | Minor | P2 | Fix in PR [#36](https://github.com/Zubairilyas1/pretix-sqe/pull/36) | Fix: pass `now_dt` to `_compute_waitinglist` | White-box review of `quotas.py` L461; `zubair/test_dz01_waitinglist_now_dt.py` | PR-WB-01 | [#16](https://github.com/Zubairilyas1/pretix-sqe/issues/16) |
+| D-Z01 | Waiting-list auto-disable compared with real `now()` instead of `now_dt` in `QuotaAvailability` | Minor | P2 | Fixed (PR [#36](https://github.com/Zubairilyas1/pretix-sqe/pull/36) merged 28 Nov) | Fix: pass `now_dt` to `_compute_waitinglist` | White-box review of `quotas.py` L461; `zubair/test_dz01_waitinglist_now_dt.py` | PR-WB-01 | [#16](https://github.com/Zubairilyas1/pretix-sqe/issues/16) |
 | W-01 | Negative item price accepted by `POST items/` | Major | P1 | Open | Report upstream; blocks release (EC-1 risk) | `sami/api/test_api_ep_bva.py` BVA min-1 (strict xfail) | PR-API-01 || [#17](https://github.com/Zubairilyas1/pretix-sqe/issues/17) |
 | W-02 | Negative cart-position price accepted | Major | P1 | Open | Report upstream | `test_api_ep_bva.py` (strict xfail) | PR-API-01 || [#18](https://github.com/Zubairilyas1/pretix-sqe/issues/18) |
 | W-03 | Retry without idempotency key creates a duplicate order | Major | P2 | Open | Accept for trusted clients + document header | `test_negative_rules.py` characterisation test | PR-API-02 || [#19](https://github.com/Zubairilyas1/pretix-sqe/issues/19) |
