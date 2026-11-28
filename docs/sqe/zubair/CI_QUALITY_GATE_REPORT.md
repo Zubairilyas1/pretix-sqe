@@ -10,8 +10,14 @@ branches, manual dispatch. Runner: GitHub Actions `ubuntu-latest`, Python 3.11.
 | 2 | API and integration tests | any Area 2 test fails, or a strict xfail unexpectedly passes (a tracked defect changed behaviour) | JUnit XML |
 | 3 | Playwright E2E, accessibility, RBAC, recovery | any Area 3 test fails | JUnit XML, Playwright HTML report |
 | 4 | SonarQube quality gate | SonarQube project gate is ERROR (`sonar.qualitygate.wait=true` makes the scanner exit non-zero) | measures JSON |
-| 5 | Mutation score | Cosmic Ray mutation score on `quotas.py` < threshold | session DB, text and HTML report, summary, survivors |
+| 5 | Mutation score | Cosmic Ray mutation score on `quotas.py` < threshold, **or** any mutant not executed. The 715 mutants run in 8 parallel shard jobs (`--shard i/8`, 4 workers each); the Gate 5 job merges them (`--merge`), checks that every mutant was executed exactly once and applies the threshold to the merged score | per-shard session DBs; merged session DB, text and HTML report, summary, survivors |
 | - | Deploy release candidate | runs **only** on `main` and **only** if gates 1-5 succeeded (`needs:`); packages the source archive + SHA256 | release-candidate artifact |
+
+**Why Gate 5 is sharded (28 Nov 2026):** the first version ran all mutants in one job with a 120-minute limit. On
+GitHub's 4-core runner it was cancelled at the limit after 338 of 715 mutants (326 killed, 12 survived; artifact of
+run 46115658134), i.e. a full run needs about 4 hours there (the whole Area 1 suite took 95 s in Gate 1 on the runner,
+with coverage, versus 14 s locally without coverage). Splitting the same mutants over 8 jobs keeps the measurement identical and brings Gate 5
+to well under an hour. A run in which any mutant was not executed now fails the gate instead of reporting a score.
 
 **No escape hatches:** the workflow contains no `continue-on-error`, no `|| true`, no `exit 0` fallback and no
 `if: always()` on a gate step (`always()` is used only on artifact uploads, which cannot turn a failed job green).

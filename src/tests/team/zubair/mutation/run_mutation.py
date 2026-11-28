@@ -10,7 +10,12 @@ What it does (nothing is hard-coded - every number comes from the Cosmic Ray ses
   4. ``cosmic-ray exec``      -> runs every mutant; with --workers > 1 it starts that many
      ``cosmic-ray http-worker`` processes, each in its own copy of src/ (PYTHONPATH points at the copy),
   5. writes results/: report.txt (cr-report), report.html (cr-html), summary.json, survivors.json,
-  6. exits 1 if the mutation score is below --fail-under (used as the CI quality gate).
+  6. exits 1 if the mutation score is below --fail-under (used as the CI quality gate), or if any mutant was
+     not executed (an incomplete run can never pass the gate).
+
+Parallel CI (Gate 5): ``--shard i/n`` keeps every n-th mutant (stable order: operator, occurrence, position) so n
+jobs share the work; ``--merge DIR ...`` then re-enumerates all mutants, checks that the shard results cover every
+mutant exactly once, and computes the score and the gate on the merged session.
 
 Usage (from the repository root):
     python src/tests/team/zubair/mutation/run_mutation.py --workers 6 --fail-under 85
@@ -68,6 +73,51 @@ def _write_config(path, worker_urls, timeout):
     path.write_text("\n".join(lines))
 
 
+KEY = ("module_path", "operator_name", "operator_args", "occurrence", "start_pos_row", "start_pos_col",
+       "end_pos_row", "end_pos_col")
+
+
+def _keys(con):
+    return {tuple(r[:-1]): r[-1] for r in con.execute(f"SELECT {', '.join(KEY)}, job_id FROM mutation_specs")}
+
+
+def _apply_shard(db, shard):
+    """Keep only mutants i, i+n, i+2n, ... of the stable ordering of all mutants."""
+    i, n = (int(x) for x in shard.split("/"))
+    con = sqlite3.connect(db)
+    ordered = sorted(_keys(con).items())
+    drop = [job for k, (key, job) in enumerate(ordered) if k % n != i]
+    con.executemany("DELETE FROM work_items WHERE job_id = ?", [(j,) for j in drop])
+    con.executemany("DELETE FROM mutation_specs WHERE job_id = ?", [(j,) for j in drop])
+    con.commit()
+    print(f"shard {i}/{n}: {len(ordered) - len(drop)} of {len(ordered)} mutants", flush=True)
+
+
+def _merge(dirs, db, cfg):
+    """Merge shard sessions into db (a fresh init of all mutants) and check complete, non-overlapping coverage."""
+    con = sqlite3.connect(db)
+    full = _keys(con)
+    seen = {}
+    for d in dirs:
+        sc = sqlite3.connect(Path(d) / "session.sqlite")
+        specs = _keys(sc)
+        results = {r[-1]: r[:-1] for r in sc.execute(
+            "SELECT worker_outcome, output, test_outcome, diff, job_id FROM work_results")}
+        for key, job in specs.items():
+            if key in seen:
+                raise SystemExit(f"mutant {key} executed by two shards ({seen[key]} and {d})")
+            if key not in full:
+                raise SystemExit(f"mutant {key} from {d} is not in the full enumeration")
+            seen[key] = d
+            if job in results:
+                con.execute("DELETE FROM work_results WHERE job_id = ?", (full[key],))
+                con.execute("INSERT INTO work_results (worker_outcome, output, test_outcome, diff, job_id) "
+                            "VALUES (?, ?, ?, ?, ?)", (*results[job], full[key]))
+    con.commit()
+    missing = len(full) - len(seen)
+    print(f"merged {len(dirs)} shards: {len(seen)} of {len(full)} mutants assigned, {missing} unassigned", flush=True)
+
+
 def _copy_src(dest):
     ignore = shutil.ignore_patterns("__pycache__", "*.pyc", ".pytest_cache", ".coverage*", "node_modules",
                                     "pretix.egg-info")
@@ -101,6 +151,7 @@ def _summarise(db, out):
     summary = {
         "tool": "cosmic-ray", "module": MODULE, "total_mutants": total, "executed": len(done),
         "killed": len(killed), "survived": len(survived), "incompetent": len(incompetent),
+        "pending": sum(1 for r in rows if r[6] is None),
         "mutation_score_percent": score,
         "score_formula": "killed / (killed + survived) * 100 (incompetent mutants excluded)",
         "by_operator": by_op,
@@ -121,6 +172,8 @@ def main():
     ap.add_argument("--timeout", type=float, default=300)
     ap.add_argument("--out", default=str(HERE / "results"))
     ap.add_argument("--report-only", action="store_true", help="re-create reports from an existing session")
+    ap.add_argument("--shard", help="i/n: run only every n-th mutant starting at i (parallel CI jobs)")
+    ap.add_argument("--merge", nargs="+", metavar="DIR", help="merge the sessions of shard result directories")
     args = ap.parse_args()
 
     out = Path(args.out)
@@ -128,7 +181,15 @@ def main():
     db = out / "session.sqlite"
     cfg = out / "session.toml"
 
-    if not args.report_only:
+    if args.merge:
+        if db.exists():
+            db.unlink()
+        _write_config(cfg, [], args.timeout)
+        if _run(CR + ["init", str(cfg), str(db)]).returncode:
+            return 2
+        _run([sys.executable, "-m", "cosmic_ray.tools.filters.operators_filter", str(db), str(cfg)])
+        _merge(args.merge, db, cfg)
+    elif not args.report_only:
         if db.exists():
             db.unlink()
         workers, tmp = [], None
@@ -149,6 +210,8 @@ def main():
             if _run(CR + ["init", str(cfg), str(db)]).returncode:
                 return 2
             _run([sys.executable, "-m", "cosmic_ray.tools.filters.operators_filter", str(db), str(cfg)])
+            if args.shard:
+                _apply_shard(db, args.shard)
             base = _run(CR + ["baseline", str(cfg)], capture_output=True, text=True)
             if base.returncode:
                 print(base.stdout, base.stderr)
@@ -174,6 +237,9 @@ def main():
     s = _summarise(db, out)
     keys = ("total_mutants", "executed", "killed", "survived", "incompetent", "mutation_score_percent")
     print(json.dumps({k: s[k] for k in keys}, indent=2))
+    if s["pending"]:
+        print(f"MUTATION GATE FAILED: {s['pending']} of {s['total_mutants']} mutants were never executed")
+        return 1
     if s["mutation_score_percent"] < args.fail_under:
         print(f"MUTATION GATE FAILED: score {s['mutation_score_percent']}% < {args.fail_under}%")
         return 1
