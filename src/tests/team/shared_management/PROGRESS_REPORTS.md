@@ -20,7 +20,7 @@ daily checkpoints. Every number below was measured from the repository at the ch
 | CP1 Wed 25 Nov, end of day | `8d2853623` | 42 | 0 | 0 | 0 | 0.00 | 4/8 = 50 % | n/a (no issues) |
 | CP2 Thu 26 Nov, end of day | `c1ce6c2be` | 42 | 260 | 0 | 8 (W-01..W-08) | 0.99 | 7/8 = 87.5 % | n/a (no issues) |
 | CP3 Fri 27 Nov, 09:39 (before audit) | `f8b19f3f7` | 42 | 260 | 65 | 14 (+A3-D01..D06) | 1.73 | 8/8 = 100 % | n/a (no issues) |
-| CP4 Fri 27 Nov, after rework | `zubair` branch head | 218 | 520 | 68 | 19 (+D-Z01, W-09..W-12) | 2.34 | 8/8 = 100 % | 0 / 1 closed = 0 % (D-Z01 fix in PR #36) |
+| CP4 Fri 27 Nov, after rework | `zubair` branch head | 218 | 520 | 68 | 19 (+D-Z01, W-09..W-12) | 2.34 | 8/8 = 100 % | 0 / 2 closed = 0 % (A3-D03, D-Z01 via PR #36) |
 
 Notes on the measurements:
 * CP1 requirements coverage counts FR-02, FR-03, FR-05, FR-08. The Area 1 MCC tests of that date evaluated a helper written inside the test file, so FR-04 was **not** counted as covered by them.
