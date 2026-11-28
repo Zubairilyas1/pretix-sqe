@@ -1,0 +1,11 @@
+# Extra packages needed by the team test suites (on top of `pip install -e ".[dev]"`).
+# Versions are the ones used for the reported runs.
+openapi-spec-validator==0.9.0     # Area 2: OpenAPI spec validation
+openapi-schema-validator==0.9.0   # Area 2: response/example schema validation
+PyYAML==6.0.4                     # Area 2: spec + generator
+axe-playwright-python==0.1.9      # Area 3: axe-core scans through Playwright
+pytest-html==4.1.1                # Area 3: HTML (Playwright) test report
+fakeredis==2.40.0                 # Area 1: redis cache paths of QuotaAvailability
+cosmic-ray==8.9.0                 # Area 1: mutation testing
+waitress==3.0.2                   # Area 3: production-like server for k6 / ZAP / Lighthouse (Windows)
+whitenoise==6.9.0                 # Area 3: static files for that server

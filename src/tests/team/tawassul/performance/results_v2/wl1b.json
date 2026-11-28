@@ -1,0 +1,153 @@
+{
+    "metrics": {
+        "http_req_failed{phase:measure}": {
+            "passes": 0,
+            "fails": 657,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 819,
+            "value": 0
+        },
+        "http_reqs": {
+            "count": 819,
+            "rate": 10.909113650033783
+        },
+        "http_req_tls_handshaking": {
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "max": 0,
+            "avg": 0
+        },
+        "http_reqs{phase:measure}": {
+            "rate": 8.751266993983144,
+            "count": 657,
+            "thresholds": {
+                "count>0": false
+            }
+        },
+        "data_sent": {
+            "count": 352769,
+            "rate": 4698.897574125479
+        },
+        "http_req_duration{expected_response:true}": {
+            "max": 404.9484,
+            "avg": 91.55960647130661,
+            "min": 66.6309,
+            "med": 83.8392,
+            "p(90)": 116.52340000000002,
+            "p(95)": 129.49760999999992
+        },
+        "http_req_waiting": {
+            "med": 83.6411,
+            "p(90)": 116.38026,
+            "p(95)": 128.86100999999994,
+            "max": 404.9484,
+            "avg": 91.2470946275947,
+            "min": 66.6309
+        },
+        "http_req_duration{phase:measure}": {
+            "max": 404.9484,
+            "avg": 91.26321263318107,
+            "min": 66.6309,
+            "med": 83.8355,
+            "p(90)": 116.03555999999999,
+            "p(95)": 128.57264,
+            "thresholds": {
+                "p(95)<=500": false
+            }
+        },
+        "http_req_connecting": {
+            "avg": 0.0019002442002442003,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "max": 1.028
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 1
+        },
+        "data_received": {
+            "count": 1655367,
+            "rate": 22049.556453620844
+        },
+        "vus_max": {
+            "value": 2,
+            "min": 2,
+            "max": 2
+        },
+        "http_req_receiving": {
+            "max": 2.6873,
+            "avg": 0.29569804639804625,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0.8802600000000002,
+            "p(95)": 0.9818599999999998
+        },
+        "checks": {
+            "passes": 819,
+            "fails": 0,
+            "value": 1
+        },
+        "http_req_duration": {
+            "avg": 91.55960647130661,
+            "min": 66.6309,
+            "med": 83.8392,
+            "p(90)": 116.52340000000002,
+            "p(95)": 129.49760999999992,
+            "max": 404.9484
+        },
+        "iterations": {
+            "count": 819,
+            "rate": 10.909113650033783
+        },
+        "iteration_duration": {
+            "p(90)": 116.78384000000001,
+            "p(95)": 129.49760999999992,
+            "max": 405.4559,
+            "avg": 91.70833199023214,
+            "min": 66.6309,
+            "med": 84.0647
+        },
+        "http_req_blocked": {
+            "p(95)": 0,
+            "max": 8.5032,
+            "avg": 0.014299511599511597,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0
+        },
+        "http_req_sending": {
+            "avg": 0.016813797313797316,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "max": 1.0028
+        }
+    },
+    "root_group": {
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "order 201": {
+                    "id": "147921ac4c62a52b378e73da3bffea16",
+                    "passes": 819,
+                    "fails": 0,
+                    "name": "order 201",
+                    "path": "::order 201"
+                }
+            },
+        "name": "",
+        "path": ""
+    }
+}

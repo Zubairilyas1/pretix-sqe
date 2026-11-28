@@ -33,15 +33,15 @@ Each alert was checked against the evidence and the pretix source before classif
 
 | Check | Shop | Back office | Test |
 | :--- | :-: | :-: | :--- |
-| `Content-Security-Policy` | ✅ | ✅ | `test_content_security_policy_present` |
-| `X-Frame-Options: DENY` (clickjacking) | ✅ | ✅ | `test_clickjacking_protection` |
-| `X-Content-Type-Options: nosniff` | ❌ | ❌ | `test_no_mime_sniffing` (xfail A3-D02) |
-| `Referrer-Policy` (protects the order secret in URLs) | ❌ | ❌ | `test_referrer_policy_protects_order_secret` (xfail A3-D02). ZAP does not flag it. |
+| `Content-Security-Policy` | Yes | Yes | `test_content_security_policy_present` |
+| `X-Frame-Options: DENY` (clickjacking) | Yes | Yes | `test_clickjacking_protection` |
+| `X-Content-Type-Options: nosniff` | No | No | `test_no_mime_sniffing` (xfail A3-D02) |
+| `Referrer-Policy` (protects the order secret in URLs) | No | No | `test_referrer_policy_protects_order_secret` (xfail A3-D02). ZAP does not flag it. |
 | `Strict-Transport-Security` | n/a | n/a | only meaningful over HTTPS (test runs on HTTP) |
-| Session cookie `HttpOnly` | ✅ | ✅ | `test_session_cookie_is_httponly` |
+| Session cookie `HttpOnly` | Yes | Yes | `test_session_cookie_is_httponly` |
 | Session cookie `SameSite` | design: none on HTTP, `None; Secure; Partitioned` on HTTPS | | `test_cookies_samesite_design_over_http` |
 | Session cookie `Secure` | not set on HTTP (expected); set when HTTPS | | — |
-| Back-office session pinned to User-Agent | ✅ | | observed in `pretix/helpers/security.py:97` (see `../usability_a11y/a11y_findings.md`) |
+| Back-office session pinned to User-Agent | Yes | | observed in `pretix/helpers/security.py:97` (see `../usability_a11y/a11y_findings.md`) |
 
 ## Defects raised
 - **A3-D02 (Minor):** missing `X-Content-Type-Options` and `Referrer-Policy`.
@@ -55,3 +55,33 @@ cd src
 ../.venv/Scripts/python tests/team/tawassul/performance/perf_server.py      # in a second terminal
 ../.venv/Scripts/python tests/team/tawassul/security/zap_scan.py
 ```
+
+
+## Re-run of 27 Nov 2026 - both workflows completely through the proxy
+**Why the first run stopped before the order page.** Placing the order took about 25 s on the perf instance: pretix
+retries the order confirmation e-mail against a local SMTP server that does not exist on the test machine
+(`ConnectionRefusedError` in the server log, then `perform_order ... succeeded in 25.2 s`). ZAP's default proxy timeout
+is 20 s, so ZAP cut the response off. The driver now starts ZAP with `connection.timeoutInSecs=120`, follows pretix's
+wait page to the order confirmation, and also **completes** the W1 action (creates a quota) instead of only opening pages.
+
+| Item | Result |
+| :--- | :--- |
+| Tool | OWASP ZAP 2.17.0 (`zaproxy/zap-stable:2.17.0`), passive scan only |
+| W2 (customer) | shop -> cart -> contact -> payment -> review -> **order confirmation reached** (`/order/<code>/<secret>/?thanks=yes`) |
+| W1 (organizer) | login -> product form -> quota form -> **quota "ZAP quota" created** (success message seen) |
+| Alerts | 186 instances, 14 rules (`evidence/zap_alerts.json`, `evidence/zap_report.html`, flows in `evidence/zap_flows.json`) |
+
+**New alert (not in the first run): 10020 Missing Anti-clickjacking Header on the order confirmation page.**
+
+| Field | Triage |
+| :--- | :--- |
+| Element / URL | `/{org}/{event}/order/{code}/{secret}/` (and the other customer order pages) |
+| Evidence | response has no `X-Frame-Options` and the CSP has no `frame-ancestors`; the shop and checkout pages do send `X-Frame-Options: DENY` (checked with curl) |
+| Source | `pretix/presale/views/order.py` marks 11 order views `xframe_options_exempt` so that the order page can be shown inside the embeddable shop widget after checkout |
+| Classification | **By design, residual risk** - linked to PR-SEC-04 (Low/Medium) |
+| Impact | another site could frame a customer's order page (it needs the secret link) and try to trick the customer into clicking "Cancel order"; the cancellation needs a second confirmation page and a CSRF-protected POST, which limits the risk |
+| Recommended fix | send `Content-Security-Policy: frame-ancestors 'self' <organizer's own domains>` on the order pages instead of exempting them completely |
+
+**Correction to the table above:** "Framing is blocked by `X-Frame-Options: DENY`" is true for the shop and checkout
+pages but **not** for the customer order pages (see 10020). All other rules are the same as in the first run, with the
+same triage (10202 on `<form method="dialog">` remains a false positive).

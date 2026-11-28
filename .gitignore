@@ -36,3 +36,13 @@ htmlcov/
 .mutmut-cache/
 .coverage*
 
+
+# SQE Area 1 local artefacts
+*.egg-info/
+coverage-area1*
+coverage-sonar.xml
+mutation-results/
+
+# report screenshot instance
+docs/sqe/final_report/capture/.screens_data/
+.scannerwork/

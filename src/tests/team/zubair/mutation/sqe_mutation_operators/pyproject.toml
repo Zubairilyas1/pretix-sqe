@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sqe-mutation-operators"
+version = "1.0.0"
+description = "Custom Cosmic Ray mutation operators based on the pretix business rules (SE3002 SQE project)"
+requires-python = ">=3.9"
+dependencies = ["cosmic-ray==8.9.0"]
+
+[project.entry-points."cosmic_ray.operator_providers"]
+sqe = "sqe_mutation_operators.provider:OperatorProvider"
+
+[tool.setuptools]
+packages = ["sqe_mutation_operators"]

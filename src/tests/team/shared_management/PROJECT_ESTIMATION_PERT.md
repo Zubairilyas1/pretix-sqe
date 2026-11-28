@@ -27,14 +27,15 @@ Where:
 | Milestone / Task | O | M | P | E (hrs) | Variance $\sigma^2$ | Actual (hrs) | Variance Analysis & Explanatory Notes |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
 | **T1.1 Environment Setup & Django Scope Manager** | 1.0 | 2.0 | 4.0 | 2.17 | 0.25 | 2.5 | Resolved `ScopeError` and Celery serializer constraints under SQLite. |
-| **T1.2 White-Box Quota & Cart Unit Suites** | 3.0 | 5.0 | 8.0 | 5.17 | 0.69 | 5.0 | Implemented 18 unit tests exercising 100% statement/branch coverage. |
-| **T1.3 Order State Machine Unit Suite** | 2.0 | 4.0 | 7.0 | 4.17 | 0.69 | 4.0 | Evaluated all 9 allowed and 11 disallowed order state transitions. |
-| **T1.4 MCC Truth Table & MC/DC Test Suite** | 3.0 | 4.5 | 8.0 | 4.83 | 0.69 | 4.5 | Formulated complete 16-row MCC truth table and 4 MC/DC condition pairs. |
-| **T1.5 AST Mutation Runner & Custom Operators** | 4.0 | 7.0 | 12.0 | 7.33 | 1.78 | 7.0 | Built `QuotaBoundaryInversion` and `OrderStateBypass` AST mutators. |
-| **T1.6 Surviving Mutants Analysis (15 Mutants)** | 2.0 | 3.5 | 6.0 | 3.67 | 0.44 | 3.5 | Audited all 15 surviving mutants (10 killed, 5 equivalent defended). |
-| **T1.7 GitHub Actions CI Quality Gate** | 2.0 | 3.0 | 6.0 | 3.33 | 0.44 | 3.0 | Configured zero-escape-hatch blocking CI workflow with uv pip. |
-| **T1.8 Defect Log, RCA (5 Whys, Fishbone, Pareto)**| 2.0 | 3.5 | 6.0 | 3.67 | 0.44 | 3.5 | Documented 8 defects with full RCA and Pareto chart. |
-| **Subtotal Area 1** | **19.0** | **32.5** | **57.0** | **34.35** | **5.42** | **33.0** | Variance within acceptable bounds ($\Delta = -1.35\text{ hrs}$). |
+| **T1.2 White-Box Quota & Cart Unit Suites** | 3.0 | 5.0 | 8.0 | 5.17 | 0.69 | 5.0 | 25 Nov version reached only 61 % on `quotas.py`; completed in T1.9. |
+| **T1.3 Order State Machine Unit Suite** | 2.0 | 4.0 | 7.0 | 4.17 | 0.69 | 4.0 | 25 Nov version only set `status` directly; real service-based transitions done in T1.9. |
+| **T1.4 MCC Truth Table & MC/DC Test Suite** | 3.0 | 4.5 | 8.0 | 4.83 | 0.69 | 4.5 | 25 Nov table tested a helper inside the test file; redone on real decisions in T1.9. |
+| **T1.5 AST Mutation Runner & Custom Operators** | 4.0 | 7.0 | 12.0 | 7.33 | 1.78 | 7.0 | Withdrawn (never produced mutants); redone with Cosmic Ray in T1.9. |
+| **T1.6 Surviving Mutants Analysis (15 Mutants)** | 2.0 | 3.5 | 6.0 | 3.67 | 0.44 | 3.5 | Withdrawn (no mutation run existed); redone in T1.9 from real survivors. |
+| **T1.7 GitHub Actions CI Quality Gate** | 2.0 | 3.0 | 6.0 | 3.33 | 0.44 | 3.0 | Gate ran only Area 1 tests and a fixed-number mutation script; rewritten in T1.9. |
+| **T1.8 Defect Log, RCA (5 Whys, Fishbone, Pareto)**| 2.0 | 3.5 | 6.0 | 3.67 | 0.44 | 3.5 | D-01..D-08 withdrawn (no evidence); log rebuilt in T1.9. |
+| **T1.9 Rework after audit (27 Nov): 100 % coverage, real MCC/MC-DC, Cosmic Ray + plug-in, CI rewrite, management documents** | - | - | - | not planned | - | to be confirmed by Zubair | Unplanned (DV-1 / PJ-INT-01); includes two mutation runs of about 22 min each on 8 workers |
+| **Subtotal Area 1** | **19.0** | **32.5** | **57.0** | **34.35** | **5.42** | **33.0** | Actual excludes T1.9; part of the recorded 33.0 h went into work that was later withdrawn, so the small variance is not evidence of good estimation for Area 1. |
 
 ---
 
@@ -84,3 +85,7 @@ $$\text{Project Standard Deviation } \sigma_{\text{total}} = \sqrt{\sum \sigma_i
 
 **Estimation Accuracy Conclusion:**  
 The total actual project effort of **103.0 hours** fell comfortably within the $1\sigma$ confidence interval of the expected PERT duration ($112.43 \pm 4.24\text{ hours}$, $[108.19, 116.67]$), demonstrating disciplined sprint execution, accurate estimation, and minimal scope creep across all three engineering sub-teams.
+
+
+## Note added 2026-11-27
+The Area 1 actuals above were recorded on 25 Nov for work that was later withdrawn (`TEST_COMPLETION_REPORT.md`, DV-1). The estimate was met in hours but not in output; lesson for the next estimate: a task counts as done only when its evidence is a committed tool output.

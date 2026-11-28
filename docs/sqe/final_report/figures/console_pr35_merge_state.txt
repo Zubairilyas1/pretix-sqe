@@ -1,0 +1,11 @@
+$ gh.exe pr view 35 -R Zubairilyas1/pretix-sqe --json number,title,state,mergeStateStatus,statusCheckRollup --jq '"PR #\(.number): \(.title)", "state: \(.state)", "mergeStateStatus: \(.mergeStateStatus)", "checks:", (.statusCheckRollup[] | "  \(.name): \(.conclusion)")'
+PR #35: demo(ci): sold-out check in quota orders stage changed from <= 0 to < 0 (must be blocked)
+state: OPEN
+mergeStateStatus: BLOCKED
+checks:
+  Gate 1 - Unit tests + 100% business-rule coverage: FAILURE
+  Gate 2 - API and integration tests: FAILURE
+  Gate 3 - Playwright E2E, accessibility, RBAC, recovery: FAILURE
+  Gate 4 - SonarQube quality gate: FAILURE
+  Gate 5 - Mutation score (Cosmic Ray + custom operators): SKIPPED
+  Deploy release candidate (only if every gate passed): SKIPPED

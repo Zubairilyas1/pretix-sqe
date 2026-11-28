@@ -42,6 +42,9 @@ W01 = "W-01: negative item price accepted (no lower bound on Item.default_price)
 W02 = "W-02: negative cart position price accepted (no lower bound on CartPosition price)"
 W04 = "W-04: item name not validated (empty / missing default locale / longer than 255)"
 W05 = "W-05: quota size above the 32-bit integer range accepted (no max_value on Quota.size)"
+W09 = "W-09: negative order position price accepted by POST orders/ (no lower bound on position price)"
+W11 = "W-11: attendee_name longer than 255 accepted (OrderPosition.attendee_name_cached is max_length=255)"
+W12 = "W-12: order action endpoints do not validate their body; send_email is used by truthiness (api/views/order.py:397)"
 KNOWN_DEVIATIONS = {
     "createItem.default_price.BVA.min-1": W01,
     "createItem.default_price.EP.below_min": W01,
@@ -55,14 +58,22 @@ KNOWN_DEVIATIONS = {
     "createQuota.size.EP.above_max": W05,
     "patchQuota.size.BVA.max+1": W05,
     "patchQuota.size.EP.above_max": W05,
+    "createOrder.positions[].price.BVA.min-1": W09,
+    "createOrder.positions[].price.EP.below_min": W09,
+    "createOrder.positions[].attendee_name.BVA.len_max+1": W11,
+    "createOrder.positions[].attendee_name.EP.too_long": W11,
+    "markOrderPaid.send_email.EP.null": W12,
+    "markOrderPaid.send_email.EP.wrong_type": W12,
+    "markOrderCanceled.send_email.EP.null": W12,
+    "markOrderCanceled.send_email.EP.wrong_type": W12,
 }
 
 
 def _cases(operation):
     out = []
     for c in DATA["cases"]:
-        if c["operation"] != operation or c["value_kind"] == "relative_to_runtime":
-            continue
+        if c["operation"] != operation or c["value_kind"] == "relative_to_runtime" or "location" in c:
+            continue  # runtime-relative cases: rule tests; parameter cases: test_api_parameters.py
         marks = []
         if c["id"] in KNOWN_DEVIATIONS:
             marks.append(pytest.mark.xfail(strict=True, reason=KNOWN_DEVIATIONS[c["id"]]))
@@ -80,7 +91,7 @@ def _assert_reject(resp, case):
         f"{case['id']}: expected 400 for value {case['value']!r} ({case['note']}), "
         f"got {resp.status_code}: {resp.content[:300]!r}"
     )
-    top_field = case["field"].split(".")[0]
+    top_field = case["field"].split(".")[0].replace("[]", "")
     body = resp.json()
     assert top_field in body, f"{case['id']}: error body does not name field {top_field!r}: {body}"
 
@@ -105,7 +116,7 @@ def _assert_stored(stored, case):
 @pytest.mark.django_db
 @pytest.mark.parametrize("case", _cases("createItem"))
 def test_create_item(case, api, organizer_client, team_event):
-    payload = apply_case(api.fill(DATA["baselines"]["createItem"]), case)
+    payload = api.fill(apply_case(DATA["baselines"]["createItem"], case))
     before = _model_count(Item, team_event)
     resp = organizer_client.post(api.items(), payload, format="json")
 
@@ -127,7 +138,7 @@ def test_create_item(case, api, organizer_client, team_event):
 @pytest.mark.django_db
 @pytest.mark.parametrize("case", _cases("createQuota"))
 def test_create_quota(case, api, organizer_client, team_event):
-    payload = apply_case(api.fill(DATA["baselines"]["createQuota"]), case)
+    payload = api.fill(apply_case(DATA["baselines"]["createQuota"], case))
     before = _model_count(Quota, team_event)
     resp = organizer_client.post(api.quotas(), payload, format="json")
 
@@ -147,7 +158,7 @@ def test_create_quota(case, api, organizer_client, team_event):
 @pytest.mark.django_db
 @pytest.mark.parametrize("case", _cases("patchQuota"))
 def test_patch_quota(case, api, organizer_client, team_quota):
-    payload = apply_case(api.fill(DATA["baselines"]["patchQuota"]), case)
+    payload = api.fill(apply_case(DATA["baselines"]["patchQuota"], case))
     resp = organizer_client.patch(api.quotas(team_quota.pk), payload, format="json")
     with scopes_disabled():
         team_quota.refresh_from_db()
@@ -166,7 +177,7 @@ def test_patch_quota(case, api, organizer_client, team_quota):
 @pytest.mark.django_db
 @pytest.mark.parametrize("case", _cases("createCartPosition"))
 def test_create_cart_position(case, api, organizer_client, team_event, team_quota):
-    payload = apply_case(api.fill(DATA["baselines"]["createCartPosition"]), case)
+    payload = api.fill(apply_case(DATA["baselines"]["createCartPosition"], case))
     before = _model_count(CartPosition, team_event)
     resp = organizer_client.post(api.carts(), payload, format="json")
 
@@ -195,7 +206,7 @@ def unlimited_quota(team_quota):
 @pytest.mark.django_db
 @pytest.mark.parametrize("case", _cases("createOrder"))
 def test_create_order(case, api, organizer_client, team_event, unlimited_quota):
-    payload = apply_case(api.fill(DATA["baselines"]["createOrder"]), case)
+    payload = api.fill(apply_case(DATA["baselines"]["createOrder"], case))
     before = _model_count(Order, team_event)
     resp = organizer_client.post(api.orders(), payload, format="json")
 
@@ -207,6 +218,36 @@ def test_create_order(case, api, organizer_client, team_event, unlimited_quota):
                 assert order.positions.count() == case["value"]
             elif case["field"] in ("code", "email", "status", "locale", "testmode"):
                 _assert_stored(getattr(order, case["field"]), case)
+            elif case["field"].startswith("positions[]."):
+                pos = order.positions.first()
+                sub = case["field"].split(".", 1)[1]
+                if sub == "item":
+                    assert pos.item_id == api.item.pk
+                elif sub == "attendee_name" and case["value"] is not None:
+                    assert pos.attendee_name == case["value"]
+                elif sub == "price" and case["value"] is not None:
+                    _assert_stored(pos.price, case)
     else:
         _assert_reject(resp, case)
         assert _model_count(Order, team_event) == before
+
+
+# --------------------------------------------------------------------------
+# Workflow 2: order state actions with a body (mark_paid, mark_canceled)
+# --------------------------------------------------------------------------
+@pytest.mark.django_db
+@pytest.mark.parametrize("case", _cases("markOrderPaid") + _cases("markOrderCanceled"))
+def test_order_action_body(case, api, organizer_client, team_event, team_quota):
+    code = organizer_client.post(api.orders(), api.order_payload(1), format="json").data["code"]
+    action = {"markOrderPaid": "mark_paid", "markOrderCanceled": "mark_canceled"}[case["operation"]]
+    target = {"markOrderPaid": Order.STATUS_PAID, "markOrderCanceled": Order.STATUS_CANCELED}[case["operation"]]
+    payload = apply_case(DATA["baselines"][case["operation"]], case)
+    resp = organizer_client.post(api.orders(code, action), payload, format="json")
+    with scopes_disabled():
+        status = Order.objects.get(event=team_event, code=code).status
+    if case["expected"] == "accept":
+        assert resp.status_code == 200, f"{case['id']}: {resp.content[:300]!r}"
+        assert status == target
+    else:
+        _assert_reject(resp, case)
+        assert status == Order.STATUS_PENDING, "rejected action must not change the order state"

@@ -42,6 +42,14 @@ def _reload(obj):
         return type(obj).objects.get(pk=obj.pk)
 
 
+def _crafted_add(page, shop_url, item):
+    """POST cart/add WITH a valid CSRF token, so that only pretix's business rule can refuse it
+    (without the token the request would be refused by CSRF protection, for the wrong reason)."""
+    token = next(c["value"] for c in page.context.cookies() if "csrftoken" in c["name"])
+    return page.request.post(f"{shop_url}cart/add", form={f"item_{item.pk}": "1", "csrfmiddlewaretoken": token},
+                             headers={"Referer": shop_url}, max_redirects=0)
+
+
 def _submit(page):
     page.locator("button.btn-save").first.click()
     page.wait_for_load_state("networkidle")
@@ -167,8 +175,10 @@ def test_uc2_exc_sales_period_over(page, shop_url, shop, team_item):
     page.goto(shop_url)
     expect(page.get_by_text("booking period for this event is over")).to_be_visible()
     # a crafted POST to the cart endpoint must not reserve anything either
-    resp = page.request.post(f"{shop_url}cart/add", form={f"item_{team_item.pk}": "1"})
-    assert resp.status in (200, 302, 403)
+    resp = _crafted_add(page, shop_url, team_item)
+    assert resp.status == 302                                   # refused by the rule, sent back to the shop
+    page.goto(shop_url)
+    expect_alert(page, "The booking period for this event has ended")
     assert CartPosition.objects.count() == 0
 
 
@@ -393,8 +403,10 @@ def test_uc5_exc_closed_quota(page, shop_url, shop, team_item, team_quota):
     Quota.objects.filter(pk=team_quota.pk).update(closed=True)
     page.goto(shop_url)
     expect(page.get_by_text("SOLD OUT").first).to_be_visible()
-    resp = page.request.post(f"{shop_url}cart/add", form={f"item_{team_item.pk}": "1"})
-    assert resp.status in (200, 302, 403)
+    resp = _crafted_add(page, shop_url, team_item)
+    assert resp.status == 302
+    page.goto(shop_url)
+    expect_alert(page, "no longer available")
     assert CartPosition.objects.count() == 0
 
 
@@ -460,7 +472,8 @@ def test_uc6_exc_self_cancel_disabled(page, live_url, shop_url, shop, team_item,
     code, secret = buy(page, shop_url, team_item)
     expect(page.get_by_role("link", name=re.compile("Cancel order", re.I))).to_have_count(0)
     _cancel_page(page, live_url, code, secret)
-    assert "/cancel" not in page.url or page.locator(".alert-danger").count() > 0
+    expect(page).to_have_url(re.compile(rf"/order/{code}/{secret}/$"))   # sent back to the order page
+    expect_alert(page, "You cannot cancel this order")
     with scopes_disabled():
         assert Order.objects.get(code=code).status == Order.STATUS_PENDING
     assert available(team_quota) == 9

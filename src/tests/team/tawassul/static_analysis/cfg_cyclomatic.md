@@ -65,18 +65,25 @@ flowchart TD
 
 All three methods agree, so **V(G) = 6**. At most 6 linearly independent paths exist, and 6 tests are an upper bound for basis-path testing.
 
-For comparison, counting each `if` statement as one decision, as SonarQube's cyclomatic metric does, gives 3 + 1 = 4. The difference of 2 comes from the two `and` operators. This is why condition-level paths need more tests than statement-level branches.
+**Comparison with SonarQube (measured 27 Nov 2026).** The function was copied unchanged into a file of its own and analysed
+with SonarQube Community Build 25.1 (`sonar_function_complexity.py`, evidence `evidence/sonar_function_complexity.json`):
+SonarQube reports **cyclomatic complexity 6** (and cognitive complexity 5). This equals the hand-calculated V(G) = 6,
+because SonarQube's Python complexity counts the function entry plus every `if` **and every boolean operator**
+(`and`/`or`): 1 + 3 `if` + 2 `and` = 6. (An earlier version of this document assumed SonarQube counts only `if`
+statements and would report 4; the measurement shows that assumption was wrong.) Counting only the three `if`
+statements would give 4 - that is the *statement-level* branch count, which is why condition-level coverage needs more
+tests than branch coverage.
 
 ## Basis paths and feasibility
 
 | Path | Decisions taken | Input that drives it | Feasible | Test |
 | :-: | :--- | :--- | :-: | :--- |
-| P1 | D1 F, D3 F, D5 F | `_cache=None` | ✅ | `test_p1_no_cache_computes_and_returns` |
-| P2 | D1 F, D3 T, D4 F, D5 T | `_cache={}` (empty dict: falsy but not None) | ✅ | `test_p2_empty_cache_is_filled` |
-| P3 | D1 T, D2 F, D3 T, D4 T | cache holds this quota, same waiting-list flag | ✅ | `test_p3_cached_value_is_returned_without_query` |
-| P4 | D1 T, D2 T, clear, D3 T, D4 F, D5 T | cache built with the *other* waiting-list flag | ✅ | `test_p4_flag_change_clears_stale_cache` |
-| P5 | D1 T, D2 F, D3 T, D4 F, D5 T | cache holds only another quota | ✅ | `test_p5_cache_without_this_quota_is_extended` |
-| P6 | D1 T, …, D3 F | needs `_cache` truthy **and** `None` | ❌ infeasible | — |
+| P1 | D1 F, D3 F, D5 F | `_cache=None` | Feasible | `test_p1_no_cache_computes_and_returns` |
+| P2 | D1 F, D3 T, D4 F, D5 T | `_cache={}` (empty dict: falsy but not None) | Feasible | `test_p2_empty_cache_is_filled` |
+| P3 | D1 T, D2 F, D3 T, D4 T | cache holds this quota, same waiting-list flag | Feasible | `test_p3_cached_value_is_returned_without_query` |
+| P4 | D1 T, D2 T, clear, D3 T, D4 F, D5 T | cache built with the *other* waiting-list flag | Feasible | `test_p4_flag_change_clears_stale_cache` |
+| P5 | D1 T, D2 F, D3 T, D4 F, D5 T | cache holds only another quota | Feasible | `test_p5_cache_without_this_quota_is_extended` |
+| P6 | D1 T, …, D3 F | needs `_cache` truthy **and** `None` | Infeasible | — |
 
 **Why P6 is infeasible:** D1 true means `_cache` is a non-empty dict, so D3 (`_cache is not None`) can never be false on the same run. Of the edges, D3→N4 (F) is reachable only through D1 F, and D5→N6 (F) only when `_cache is None`. The basis therefore has **5 feasible paths**. The sixth independent path exists in the graph but not in any execution. This is a known limit of basis-path testing: V(G) is an upper bound, not always a count of runnable tests.
 

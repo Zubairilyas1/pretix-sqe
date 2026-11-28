@@ -1,0 +1,8 @@
+Date: 2026-11-27 18:19 +0500
+Build: branch zubair, commit 4743daba3 (pretix baseline c0d887738b6c)
+Machine: CPU 11th Gen Intel Core i7-11850H @ 2.50GHz (8 cores, 16 threads), RAM 31.7 GB
+OS: Microsoft Windows 11 Pro 10.0.26300
+Load generator: Grafana k6 v0.57.0 (commit 50afd82c18, go1.23.6, windows/amd64), native binary on the same machine
+Server: pretix with DEBUG=false, waitress 3.0.2 (8 threads) + whitenoise 6.9.0 (perf_server.py), Python 3.11.15, Django 5.2.19
+Database: SQLite (tests/team/tawassul/performance/.perfdata), reseeded by seed_perf_event.py before every run
+Other load during the runs: none (mutation runs and test suites stopped)

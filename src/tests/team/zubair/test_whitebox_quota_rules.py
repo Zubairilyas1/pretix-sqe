@@ -5,7 +5,7 @@ import pytest
 from django.utils.timezone import now
 from django_scopes import scope
 
-from pretix.base.models import CartPosition, Item, Order, OrderPosition, Quota
+from pretix.base.models import Item, Order, OrderPosition, Quota
 
 
 @pytest.mark.django_db

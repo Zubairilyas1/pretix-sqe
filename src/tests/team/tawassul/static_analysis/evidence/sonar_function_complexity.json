@@ -1,0 +1,96 @@
+{
+  "sonarqube": "sonarqube:25.1.0.102122-community",
+  "scanner": "pysonar 1.11.0 (official SonarScanner for Python)",
+  "date": "2026-11-27 18:51",
+  "files": {
+    "quota_availability_function.py": {
+      "cognitive_complexity": "5",
+      "complexity": "6",
+      "functions": "1",
+      "ncloc": "16"
+    },
+    "quotas.py": {
+      "code_smells": "7",
+      "cognitive_complexity": "174",
+      "complexity": "111",
+      "functions": "12",
+      "ncloc": "357"
+    }
+  },
+  "quotas_py_measures": {
+    "coverage": "99.7",
+    "complexity": "111",
+    "reliability_rating": "1.0",
+    "code_smells": "7",
+    "duplicated_lines_density": "0.0",
+    "security_rating": "1.0",
+    "sqale_debt_ratio": "1.0",
+    "security_hotspots": "0",
+    "sqale_index": "102",
+    "sqale_rating": "1.0",
+    "bugs": "0",
+    "branch_coverage": "99.3",
+    "cognitive_complexity": "174",
+    "ncloc": "357",
+    "vulnerabilities": "0",
+    "line_coverage": "100.0"
+  },
+  "issues": [
+    {
+      "component": "sqe-fn-complexity:quotas.py",
+      "rule": "python:S3776",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "line": 121,
+      "message": "Refactor this function to reduce its Cognitive Complexity from 42 to the 15 allowed."
+    },
+    {
+      "component": "sqe-fn-complexity:quotas.py",
+      "rule": "python:S1172",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "line": 175,
+      "message": "Remove the unused function parameter \"now_dt\"."
+    },
+    {
+      "component": "sqe-fn-complexity:quotas.py",
+      "rule": "python:S3776",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "line": 226,
+      "message": "Refactor this function to reduce its Cognitive Complexity from 29 to the 15 allowed."
+    },
+    {
+      "component": "sqe-fn-complexity:quotas.py",
+      "rule": "python:S1066",
+      "severity": "MAJOR",
+      "type": "CODE_SMELL",
+      "line": 237,
+      "message": "Merge this if statement with the enclosing one."
+    },
+    {
+      "component": "sqe-fn-complexity:quotas.py",
+      "rule": "python:S3776",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "line": 297,
+      "message": "Refactor this function to reduce its Cognitive Complexity from 36 to the 15 allowed."
+    },
+    {
+      "component": "sqe-fn-complexity:quotas.py",
+      "rule": "python:S3776",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "line": 373,
+      "message": "Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed."
+    },
+    {
+      "component": "sqe-fn-complexity:quotas.py",
+      "rule": "python:S3776",
+      "severity": "CRITICAL",
+      "type": "CODE_SMELL",
+      "line": 457,
+      "message": "Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed."
+    }
+  ]
+}

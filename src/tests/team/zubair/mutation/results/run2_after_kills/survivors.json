@@ -1,0 +1,186 @@
+[
+  {
+    "job_id": "d64603d6c00340249ad7673d2de08a2a",
+    "operator": "core/ReplaceBinaryOperator_Sub_Mod",
+    "occurrence": 0,
+    "line": 151,
+    "col": 43,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -148,7 +148,7 @@\n                         if redisval is not None:\n                             data = [rv for rv in redisval.decode().split(',')]\n                             # Except for some rare situations, we don't want to use cache entries older than 2 minutes\n-                            if time.time() - int(data[2]) < 120 or allow_cache_stale:\n+                            if time.time() % int(data[2]) < 120 or allow_cache_stale:\n                                 quota_ids_set.remove(q.id)\n                                 if data[1] == \"None\":\n                                     self.results[q] = int(data[0]), None"
+  },
+  {
+    "job_id": "a5332d237fd94922935127463c6cef31",
+    "operator": "core/ReplaceComparisonOperator_Eq_GtE",
+    "occurrence": 0,
+    "line": 153,
+    "col": 43,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -150,7 +150,7 @@\n                             # Except for some rare situations, we don't want to use cache entries older than 2 minutes\n                             if time.time() - int(data[2]) < 120 or allow_cache_stale:\n                                 quota_ids_set.remove(q.id)\n-                                if data[1] == \"None\":\n+                                if data[1] >= \"None\":\n                                     self.results[q] = int(data[0]), None\n                                 else:\n                                     self.results[q] = int(data[0]), int(data[1])"
+  },
+  {
+    "job_id": "d94df91b656e413eb664d6a9892c8d42",
+    "operator": "core/NumberReplacer",
+    "occurrence": 33,
+    "line": 292,
+    "col": 34,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -289,7 +289,7 @@\n \n         for q in quotas:\n             if q not in self.results:\n-                if size_left[q] > 0:\n+                if size_left[q] > -1:\n                     self.results[q] = Quota.AVAILABILITY_OK, size_left[q]\n                 else:\n                     raise ValueError(\"inconclusive quota\")"
+  },
+  {
+    "job_id": "2d488eed055a4e159430f80b7cdee075",
+    "operator": "core/ReplaceComparisonOperator_Gt_GtE",
+    "occurrence": 0,
+    "line": 292,
+    "col": 32,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -289,7 +289,7 @@\n \n         for q in quotas:\n             if q not in self.results:\n-                if size_left[q] > 0:\n+                if size_left[q] >= 0:\n                     self.results[q] = Quota.AVAILABILITY_OK, size_left[q]\n                 else:\n                     raise ValueError(\"inconclusive quota\")"
+  },
+  {
+    "job_id": "2bf0fa53f8634465acaae12a67ef1f99",
+    "operator": "core/ReplaceBinaryOperator_BitAnd_BitOr",
+    "occurrence": 0,
+    "line": 309,
+    "col": 45,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -306,7 +306,7 @@\n             order__event_id__in=events,\n         ).filter(seq).filter(\n             Q(\n-                Q(variation_id__isnull=True) &\n+                Q(variation_id__isnull=True) |\n                 Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n             ) | Q(\n                 variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids})"
+  },
+  {
+    "job_id": "d5a11adc8fc7464bbed03396fa0be851",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 0,
+    "line": 311,
+    "col": 14,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -308,7 +308,7 @@\n             Q(\n                 Q(variation_id__isnull=True) &\n                 Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n-            ) | Q(\n+            ) ^ Q(\n                 variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids})\n         ).filter(\n             ~Q(Q(ignore_from_quota_while_blocked=True) & Q(blocked__isnull=False))"
+  },
+  {
+    "job_id": "54f01a502fce436aac3a9d9b9ae18119",
+    "operator": "core/NumberReplacer",
+    "occurrence": 34,
+    "line": 340,
+    "col": 35,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -337,7 +337,7 @@\n                 is_exited=Case(\n                     When(\n                         Q(last_entry__isnull=False) & Q(last_exit__isnull=False) & Q(last_exit__gt=F('last_entry')),\n-                        then=Value(1, output_field=models.IntegerField()),\n+                        then=Value( 2, output_field=models.IntegerField()),\n                     ),\n                     default=Value(0, output_field=models.IntegerField()),\n                     output_field=models.IntegerField(),"
+  },
+  {
+    "job_id": "c932f66bb77441f9a37ad71e890201f8",
+    "operator": "core/NumberReplacer",
+    "occurrence": 38,
+    "line": 348,
+    "col": 32,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -345,7 +345,7 @@\n             )\n         else:\n             op_lookup = op_lookup.annotate(\n-                is_exited=Value(0, output_field=models.IntegerField())\n+                is_exited=Value( 1, output_field=models.IntegerField())\n             )\n         op_lookup = op_lookup.values('order__status', 'item_id', 'subevent_id', 'variation_id', 'is_exited').annotate(c=Count('*'))\n         for line in sorted(op_lookup, key=lambda li: (int(li['is_exited']), li['order__status']), reverse=True):  # p before n, exited before non-exited"
+  },
+  {
+    "job_id": "774f483ee25c4bddaf3d8d9781cecad5",
+    "operator": "core/NumberReplacer",
+    "occurrence": 39,
+    "line": 348,
+    "col": 32,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -345,7 +345,7 @@\n             )\n         else:\n             op_lookup = op_lookup.annotate(\n-                is_exited=Value(0, output_field=models.IntegerField())\n+                is_exited=Value( -1, output_field=models.IntegerField())\n             )\n         op_lookup = op_lookup.values('order__status', 'item_id', 'subevent_id', 'variation_id', 'is_exited').annotate(c=Count('*'))\n         for line in sorted(op_lookup, key=lambda li: (int(li['is_exited']), li['order__status']), reverse=True):  # p before n, exited before non-exited"
+  },
+  {
+    "job_id": "4d56062ebefa4d53966b7e77142c68e0",
+    "operator": "core/ReplaceComparisonOperator_Eq_GtE",
+    "occurrence": 2,
+    "line": 358,
+    "col": 45,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -355,7 +355,7 @@\n                 qs = self._item_to_quotas[line['item_id']]\n             for q in qs:\n                 if q.subevent_id == line['subevent_id']:\n-                    if line['order__status'] == Order.STATUS_PAID:\n+                    if line['order__status'] >= Order.STATUS_PAID:\n                         self.count_paid_orders[q] += line['c']\n                         q.cached_availability_paid_orders = self.count_paid_orders[q]\n                     elif line['order__status'] == Order.STATUS_PENDING:"
+  },
+  {
+    "job_id": "b004b5302327464a80f56f5dd29d587b",
+    "operator": "core/ReplaceComparisonOperator_Eq_GtE",
+    "occurrence": 3,
+    "line": 361,
+    "col": 47,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -358,7 +358,7 @@\n                     if line['order__status'] == Order.STATUS_PAID:\n                         self.count_paid_orders[q] += line['c']\n                         q.cached_availability_paid_orders = self.count_paid_orders[q]\n-                    elif line['order__status'] == Order.STATUS_PENDING:\n+                    elif line['order__status'] >= Order.STATUS_PENDING:\n                         self.count_pending_orders[q] += line['c']\n                     if q.release_after_exit and line['is_exited']:\n                         self.count_exited_orders[q] += line['c']"
+  },
+  {
+    "job_id": "5f466b9f42b3419f939806ef9a80ecc3",
+    "operator": "core/ReplaceComparisonOperator_Eq_IsNot",
+    "occurrence": 3,
+    "line": 361,
+    "col": 47,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -358,7 +358,7 @@\n                     if line['order__status'] == Order.STATUS_PAID:\n                         self.count_paid_orders[q] += line['c']\n                         q.cached_availability_paid_orders = self.count_paid_orders[q]\n-                    elif line['order__status'] == Order.STATUS_PENDING:\n+                    elif line['order__status'] is not Order.STATUS_PENDING:\n                         self.count_pending_orders[q] += line['c']\n                     if q.release_after_exit and line['is_exited']:\n                         self.count_exited_orders[q] += line['c']"
+  },
+  {
+    "job_id": "c9befbfe50784d37832d92f8795e944b",
+    "operator": "core/ReplaceComparisonOperator_Eq_LtE",
+    "occurrence": 3,
+    "line": 361,
+    "col": 47,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -358,7 +358,7 @@\n                     if line['order__status'] == Order.STATUS_PAID:\n                         self.count_paid_orders[q] += line['c']\n                         q.cached_availability_paid_orders = self.count_paid_orders[q]\n-                    elif line['order__status'] == Order.STATUS_PENDING:\n+                    elif line['order__status'] <= Order.STATUS_PENDING:\n                         self.count_pending_orders[q] += line['c']\n                     if q.release_after_exit and line['is_exited']:\n                         self.count_exited_orders[q] += line['c']"
+  },
+  {
+    "job_id": "93cbedc078fc4575b8b30d652edb5e22",
+    "operator": "core/ReplaceComparisonOperator_Eq_GtE",
+    "occurrence": 4,
+    "line": 368,
+    "col": 53,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -365,7 +365,7 @@\n                     else:\n                         size_left[q] -= line['c']\n                         if size_left[q] <= 0 and q not in self.results:\n-                            if line['order__status'] == Order.STATUS_PAID:\n+                            if line['order__status'] >= Order.STATUS_PAID:\n                                 self.results[q] = Quota.AVAILABILITY_GONE, 0\n                             else:\n                                 self.results[q] = Quota.AVAILABILITY_ORDERED, 0"
+  },
+  {
+    "job_id": "eb77a15d53c8421e819f514d6a414f71",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 1,
+    "line": 389,
+    "col": 42,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -386,7 +386,7 @@\n             Q(event_id__in=events) &\n             seq &\n             Q(block_quota=True) &\n-            Q(Q(valid_until__isnull=True) | Q(valid_until__gte=now_dt)) &\n+            Q(Q(valid_until__isnull=True) ^ Q(valid_until__gte=now_dt)) &\n             Q(\n                 Q(\n                     Q(variation_id__isnull=True) &"
+  },
+  {
+    "job_id": "321aa3eb5080406ca4d7f8c25d20076d",
+    "operator": "core/ReplaceBinaryOperator_BitAnd_BitOr",
+    "occurrence": 8,
+    "line": 392,
+    "col": 49,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -389,7 +389,7 @@\n             Q(Q(valid_until__isnull=True) | Q(valid_until__gte=now_dt)) &\n             Q(\n                 Q(\n-                    Q(variation_id__isnull=True) &\n+                    Q(variation_id__isnull=True) |\n                     Q(item_id__in=(\n                         {i['item_id'] for i in q_items if i['quota_id'] in quota_ids} |\n                         {i['itemvariation__item_id'] for i in q_vars if i['quota_id'] in quota_ids}"
+  },
+  {
+    "job_id": "cc87b49443b9416db829b41b5d0421b4",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 3,
+    "line": 397,
+    "col": 18,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -394,7 +394,7 @@\n                         {i['item_id'] for i in q_items if i['quota_id'] in quota_ids} |\n                         {i['itemvariation__item_id'] for i in q_vars if i['quota_id'] in quota_ids}\n                     ))\n-                ) | Q(\n+                ) ^ Q(\n                     variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids}\n                 ) | Q(\n                     quota_id__in=[q.pk for q in quotas]"
+  },
+  {
+    "job_id": "207f58d101c24a3c99d3c8fbfd6a3b63",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 4,
+    "line": 399,
+    "col": 18,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -396,7 +396,7 @@\n                     ))\n                 ) | Q(\n                     variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids}\n-                ) | Q(\n+                ) ^ Q(\n                     quota_id__in=[q.pk for q in quotas]\n                 )\n             )"
+  },
+  {
+    "job_id": "b30b2ab77942400086a3f8e16eabae44",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 5,
+    "line": 433,
+    "col": 16,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -430,7 +430,7 @@\n             Q(expires__gte=now_dt) &\n             Q(\n                 Q(voucher__isnull=True)\n-                | Q(voucher__block_quota=False)\n+                ^ Q(voucher__block_quota=False)\n                 | Q(voucher__valid_until__lt=now_dt)\n             ) &\n             Q("
+  },
+  {
+    "job_id": "b6fcd5c3f910470dbdacc8c3e0400a81",
+    "operator": "core/ReplaceBinaryOperator_BitAnd_BitOr",
+    "occurrence": 13,
+    "line": 438,
+    "col": 49,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -435,7 +435,7 @@\n             ) &\n             Q(\n                 Q(\n-                    Q(variation_id__isnull=True) &\n+                    Q(variation_id__isnull=True) |\n                     Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n                 ) | Q(\n                     variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids}"
+  },
+  {
+    "job_id": "c40f851640c34feb9cdbf950fdd139c8",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 7,
+    "line": 440,
+    "col": 18,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -437,7 +437,7 @@\n                 Q(\n                     Q(variation_id__isnull=True) &\n                     Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n-                ) | Q(\n+                ) ^ Q(\n                     variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids}\n                 )\n             )"
+  },
+  {
+    "job_id": "6392dd5264c94d45b3720d89ebacd22c",
+    "operator": "core/ReplaceBinaryOperator_BitAnd_BitOr",
+    "occurrence": 17,
+    "line": 476,
+    "col": 49,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -473,7 +473,7 @@\n             seq &\n             Q(\n                 Q(\n-                    Q(variation_id__isnull=True) &\n+                    Q(variation_id__isnull=True) |\n                     Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n                 ) | Q(variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids})\n             )"
+  },
+  {
+    "job_id": "75524b8e94994ab0827893faf1ba2141",
+    "operator": "core/ReplaceBinaryOperator_BitOr_BitXor",
+    "occurrence": 8,
+    "line": 478,
+    "col": 18,
+    "diff": "--- mutation diff ---\n--- a/src\\pretix\\base\\services\\quotas.py\n+++ b/src\\pretix\\base\\services\\quotas.py\n@@ -475,7 +475,7 @@\n                 Q(\n                     Q(variation_id__isnull=True) &\n                     Q(item_id__in={i['item_id'] for i in q_items if i['quota_id'] in quota_ids})\n-                ) | Q(variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids})\n+                ) ^ Q(variation_id__in={i['itemvariation_id'] for i in q_vars if i['quota_id'] in quota_ids})\n             )\n         ).order_by().values('item_id', 'subevent_id', 'variation_id').annotate(c=Count('*'))\n         for line in w_lookup:"
+  }
+]

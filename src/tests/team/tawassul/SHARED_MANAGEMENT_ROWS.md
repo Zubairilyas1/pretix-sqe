@@ -35,7 +35,7 @@ merges them into the shared tables.
 | NFR performance: p95 ≤ 500 ms, errors < 1 % | UC-3 | `performance/k6_workload.js`, `k6_metrics_report.md` |
 | NFR reliability: recover from DB failure | UC-3 | `performance/test_failure_recovery.py` (2) |
 
-## 3. Defects (to be filed as GitHub Issues)
+## 3. Defects (filed as GitHub Issues #25-#30, see CONSOLIDATED_DEFECT_LOG.md)
 
 | ID | Title | Severity | Found by |
 | :--- | :--- | :-: | :--- |

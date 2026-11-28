@@ -18,6 +18,7 @@ to bypass the proxy for loopback addresses, so every request passes ZAP with the
 real Host header.
 """
 import json
+import re
 import subprocess
 import time
 import urllib.request
@@ -28,6 +29,7 @@ from playwright.sync_api import sync_playwright
 ZAP = "http://localhost:8090"
 TARGET = "http://localhost:8000"   # pretix's configured URL (perf_pretix.cfg)
 EVIDENCE = Path(__file__).parent / "evidence"
+FLOW_LOG = []   # (workflow, step reached, url) - written next to the alerts
 
 
 def zap(path):
@@ -57,9 +59,12 @@ while True:
 
 def start_zap():
     subprocess.run(["docker", "rm", "-f", "sqe-zap"], capture_output=True)
+    # connection.timeoutInSecs: placing the order takes ~25 s on the perf instance (pretix retries the confirmation
+    # e-mail against a non-existent local SMTP server); ZAP's default 20 s would cut the response off.
     zap_cmd = ("zap.sh -daemon -silent -host 0.0.0.0 -port 8090 -config api.disablekey=true "
+               "-config connection.timeoutInSecs=120 "
                "-config api.addrs.addr.name=.* -config api.addrs.addr.regex=true")
-    subprocess.run(["docker", "run", "-d", "--name", "sqe-zap", "-p", "8090:8090", "zaproxy/zap-stable",
+    subprocess.run(["docker", "run", "-d", "--name", "sqe-zap", "-p", "8090:8090", "zaproxy/zap-stable:2.17.0",
                     "sh", "-c", f"python3 -c \"{FORWARDER}\" & {zap_cmd}"], check=True)
     for _ in range(150):                      # ZAP needs 1-3 minutes on first start
         try:
@@ -88,19 +93,28 @@ def browse():
         page.click("main form button[type=submit].btn-primary")
         page.wait_for_url("**/checkout/confirm/")
         page.click("main form button[type=submit].btn-primary")
-        try:
-            page.wait_for_url("**/order/**", timeout=90_000)
-            print("customer flow done: order page reached", flush=True)
-        except Exception:                      # passive scan only needs the traffic
-            print("customer flow ended at", page.url.split("?")[0], flush=True)
-        # W1 as the organizer
+        # pretix places the order in a background task and shows a "please wait" page (/wait/) that reloads
+        # itself; through the proxy this takes longer, so follow it for up to 4 minutes
+        page.wait_for_url(re.compile(r"/order/[A-Z0-9]+/[a-z0-9]+/"), timeout=240_000)
+        page.wait_for_load_state("networkidle")
+        print("customer flow done: order confirmation reached", page.url.split("?")[0], flush=True)
+        FLOW_LOG.append(("W2", "order confirmation page", page.url.split("?")[0]))
+        # W1 as the organizer: log in and really create a quota (the shared record)
         page.goto(f"{TARGET}/control/login")
         page.fill("input[name=email]", "organizer@sqe.test")
         page.fill("input[name=password]", "Sqe-Organizer-2026!")
         page.click("button[type=submit]")
         page.wait_for_url(f"{TARGET}/control/")
         page.goto(f"{TARGET}/control/event/perf-org/perf-conf/items/add")
-        page.goto(f"{TARGET}/control/event/perf-org/perf-conf/quotas/")
+        page.goto(f"{TARGET}/control/event/perf-org/perf-conf/quotas/add")
+        page.fill("#id_name", "ZAP quota")
+        page.fill("#id_size", "10")
+        page.locator("input[name=itemvars]").first.check()
+        page.locator("button.btn-save").first.click()
+        page.wait_for_load_state("networkidle")
+        ok = page.locator(".alert-success").filter(has_text="The new quota has been created").count() > 0
+        print("organizer flow done: quota created =", ok, flush=True)
+        FLOW_LOG.append(("W1", "quota created" if ok else "quota NOT created", page.url.split("?")[0]))
         browser.close()
 
 
@@ -113,6 +127,10 @@ def collect():
                                "cweid", "wascid", "solution")} for a in alerts]
     (EVIDENCE / "zap_alerts.json").write_text(json.dumps(slim, indent=2), "utf-8")
     (EVIDENCE / "zap_report.html").write_bytes(zap("/OTHER/core/other/htmlreport/"))
+    urls = sorted({a["url"].split("?")[0] for a in slim})
+    (EVIDENCE / "zap_flows.json").write_text(json.dumps({"flows": FLOW_LOG, "urls_with_alerts": urls,
+                                                         "zap_version": json.loads(zap("/JSON/core/view/version/"))["version"]},
+                                                        indent=2), "utf-8")
     by_rule = {}
     for a in slim:
         r = by_rule.setdefault((a["risk"], a["pluginId"], a["alert"]), set())

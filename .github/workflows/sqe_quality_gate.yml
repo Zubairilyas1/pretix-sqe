@@ -1,63 +1,232 @@
+# SE3002 SQE - CI quality gate (owner: Zubair, Area 1)
+#
+# Runs on every pull request and on pushes to main / member branches.
+# Gates (all must pass; there is NO continue-on-error and NO "|| true" anywhere):
+#   1. unit-coverage   Area 1 white-box suite + 100 % statement/branch coverage gate on the business-rule scope
+#   2. api-tests       Area 2 OpenAPI / generator / API + integration suite
+#   3. e2e-tests       Area 3 Playwright (Chromium) use-case, accessibility, RBAC and recovery suite
+#   4. sonarqube       SonarQube analysis of the critical module + project quality gate (wait for result)
+#   5. mutation        Cosmic Ray (incl. 2 custom operators) on quotas.py, mutation score >= threshold
+#   6. deploy          Packages the release candidate - only on main and only if 1-5 passed
+# Thresholds and their justification: docs/sqe/zubair/CI_QUALITY_GATE_REPORT.md
 name: SQE CI Quality Gate
 
 on:
-  push:
-    branches: [ main, zubair, member/zubair, member/sami, member/tawassul ]
   pull_request:
-    branches: [ main, zubair ]
+  push:
+    branches: [main, zubair, member/zubair, member/sami, member/tawassul]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.11"
+  MUTATION_THRESHOLD: "85"      # justified in CI_QUALITY_GATE_REPORT.md section 2
+  SONAR_COVERAGE_THRESHOLD: "99" # quotas.py measured 99.7 % (1 documented infeasible branch)
+
 jobs:
-  whitebox_unit_tests:
-    name: White-Box Unit Tests & Branch Coverage
+  unit-coverage:
+    name: "Gate 1 - Unit tests + 100% business-rule coverage"
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - name: Checkout repository code
-        uses: actions/checkout@v4
-
-      - name: Install uv package manager
-        uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
         with:
-          version: "latest"
-
-      - name: Set up Python 3.11
-        run: uv python install 3.11
-
-      - name: Install dependencies
+          enable-cache: true
+      - name: Install pretix and test tooling
         run: |
-          uv venv
-          uv pip install -e ".[dev]"
-
-      - name: Execute Pytest Suite with Coverage Enforcement
+          uv venv --python "$PYTHON_VERSION"
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt -e src/tests/team/zubair/mutation/sqe_mutation_operators
+      - name: Run Area 1 tests with branch coverage
+        working-directory: src
         run: |
-          source .venv/bin/activate
-          pytest src/tests/team/zubair/ --cov=pretix.base.services.quotas --cov-report=term-missing --cov-report=xml
+          ../.venv/bin/python -m pytest tests/team/zubair -q -p no:cacheprovider \
+            --junitxml=../area1-junit.xml \
+            --cov=pretix.base.services.quotas --cov=pretix.base.models.orders --cov=pretix.base.models.items \
+            --cov-branch --cov-report=json:../coverage-area1.json --cov-report=xml:../coverage-area1.xml \
+            --cov-report=html:../coverage-area1-html
+      - name: Enforce 100% coverage on the business-rule scope
+        run: .venv/bin/python src/tests/team/zubair/coverage_gate.py coverage-area1.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: area1-coverage
+          path: |
+            area1-junit.xml
+            coverage-area1.json
+            coverage-area1.xml
+            coverage-area1-html/
 
-  mutation_quality_gate:
-    name: Mutation Testing Quality Gate (Custom Operators)
+  api-tests:
+    name: "Gate 2 - API and integration tests"
     runs-on: ubuntu-latest
-    needs: [whitebox_unit_tests]
+    timeout-minutes: 30
     steps:
-      - name: Checkout repository code
-        uses: actions/checkout@v4
-
-      - name: Install uv package manager
-        uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
         with:
-          version: "latest"
-
-      - name: Set up Python 3.11
-        run: uv python install 3.11
-
-      - name: Install dependencies
+          enable-cache: true
+      - name: Install
         run: |
-          uv venv
-          uv pip install -e ".[dev]"
+          uv venv --python "$PYTHON_VERSION"
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt
+      - name: Run Area 2 suite (strict xfail = tracked defects)
+        working-directory: src
+        run: ../.venv/bin/python -m pytest tests/team/sami -q -p no:cacheprovider --junitxml=../area2-junit.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: area2-results
+          path: area2-junit.xml
 
-      - name: Enforce Mutation Quality Gate (Threshold >= 80%)
+  e2e-tests:
+    name: "Gate 3 - Playwright E2E, accessibility, RBAC, recovery"
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install
         run: |
-          source .venv/bin/activate
-          python src/tests/team/zubair/mutation/mutation_runner.py
+          uv venv --python "$PYTHON_VERSION"
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt
+          .venv/bin/python -m playwright install --with-deps chromium
+      - name: Run Area 3 suite
+        working-directory: src
+        run: |
+          ../.venv/bin/python -m pytest tests/team/tawassul -q -p no:cacheprovider \
+            --junitxml=../area3-junit.xml --html=../playwright-report.html --self-contained-html
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: area3-results
+          path: |
+            area3-junit.xml
+            playwright-report.html
+
+  sonarqube:
+    name: "Gate 4 - SonarQube quality gate"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      sonarqube:
+        image: sonarqube:25.1.0.102122-community
+        ports:
+          - 9000:9000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install
+        run: |
+          uv venv --python "$PYTHON_VERSION"
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt
+      - name: Produce coverage report for SonarQube
+        working-directory: src
+        run: |
+          ../.venv/bin/python -m pytest tests/team/zubair -q -p no:cacheprovider \
+            --ignore=tests/team/zubair/test_custom_mutation_operators.py \
+            --cov=pretix.base.services.quotas --cov-branch --cov-report=xml:../coverage-sonar.xml
+          # the scanner runs in a container where the repository is mounted at /usr/src
+          sed -i 's#<source>.*</source>#<source>/usr/src/src</source>#' ../coverage-sonar.xml
+      - name: Configure SonarQube (password, quality gate, token)
+        run: .venv/bin/python src/tests/team/zubair/ci/sonar_setup.py --coverage-threshold "$SONAR_COVERAGE_THRESHOLD"
+      - name: Run sonar-scanner and wait for the quality gate
+        run: |
+          docker run --rm --network host -v "$PWD:/usr/src" sonarsource/sonar-scanner-cli:11.1 \
+            -Dsonar.host.url=http://localhost:9000 -Dsonar.token="$SONAR_TOKEN" \
+            -Dproject.settings=src/tests/team/zubair/ci/sonar-project.properties \
+            -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300
+      - name: Export measures
+        if: always()
+        run: .venv/bin/python src/tests/team/zubair/ci/sonar_setup.py --export sonar-measures.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sonarqube-measures
+          path: sonar-measures.json
+
+  mutation:
+    # All 715 mutants on one 4-core runner take about 4 hours (338 were done after 119 min on 28 Nov), so the
+    # mutants are split over 8 parallel shard jobs; this job merges them, checks that every mutant was executed
+    # exactly once, and enforces the threshold on the merged score.
+    name: "Gate 5 - Mutation score (Cosmic Ray + custom operators)"
+    runs-on: ubuntu-latest
+    needs: mutation-shard
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install
+        run: |
+          uv venv --python "$PYTHON_VERSION"
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt -e src/tests/team/zubair/mutation/sqe_mutation_operators
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-shard-*
+          path: shards
+      - name: Merge the shards and enforce the mutation threshold
+        run: |
+          .venv/bin/python src/tests/team/zubair/mutation/run_mutation.py \
+            --merge shards/mutation-shard-* --fail-under "$MUTATION_THRESHOLD" --out mutation-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-results
+          path: mutation-results/
+
+  mutation-shard:
+    name: "Gate 5 shard ${{ matrix.shard }}/8"
+    runs-on: ubuntu-latest
+    needs: unit-coverage
+    timeout-minutes: 90
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install
+        run: |
+          uv venv --python "$PYTHON_VERSION"
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt -e src/tests/team/zubair/mutation/sqe_mutation_operators
+      - name: Run Cosmic Ray on this shard (every mutant must finish)
+        run: |
+          .venv/bin/python src/tests/team/zubair/mutation/run_mutation.py \
+            --workers 4 --shard "${{ matrix.shard }}/8" --out mutation-shard
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mutation-shard-${{ matrix.shard }}
+          path: mutation-shard/
+
+  deploy:
+    name: "Deploy release candidate (only if every gate passed)"
+    runs-on: ubuntu-latest
+    needs: [unit-coverage, api-tests, e2e-tests, sonarqube, mutation]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package release candidate
+        run: |
+          git archive --format=tar.gz --prefix="pretix-sqe-${GITHUB_SHA::8}/" -o "pretix-sqe-${GITHUB_SHA::8}.tar.gz" HEAD
+          sha256sum pretix-sqe-*.tar.gz > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate
+          path: |
+            pretix-sqe-*.tar.gz
+            SHA256SUMS

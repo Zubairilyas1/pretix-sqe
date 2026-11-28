@@ -1,97 +1,106 @@
+"""
+White-box unit tests for ``Order._can_be_paid`` (pretix/base/models/orders.py) - BR-3.
+
+Branches of _can_be_paid (100 % statement + branch coverage target):
+  B1 not force                 -> approval / last-date checks       (T: most tests, F: force tests)
+  B2 require_approval          -> 'not yet approved'
+  B3 term_last and not ignore_date
+  B4 now > term_last           -> 'last date of payments ... is over'
+  B5 status == PENDING         -> True
+  B6 not accept_late and not ignore_date and not force -> 'no late payments'
+  B7 otherwise                 -> delegate to _is_still_available()
+
+Note: in pretix STATUS_REFUNDED is a deprecated alias of STATUS_CANCELED ("c").
+"""
 import datetime
-from decimal import Decimal
 
 import pytest
 from django.utils.timezone import now
 from django_scopes import scope
 
-from pretix.base.models import Item, Order, OrderPosition, Quota
+from pretix.base.models import Order, Quota
+from pretix.base.reldate import RelativeDateWrapper
+
+
+@pytest.fixture
+def ctx(team_organizer, team_event, team_item, team_quota):
+    with scope(organizer=team_organizer):
+        yield team_event
+
+
+def _set_last_payment_date(event, days_from_now):
+    event.settings.payment_term_last = RelativeDateWrapper(now() + datetime.timedelta(days=days_from_now))
 
 
 @pytest.mark.django_db
 class TestWhiteboxOrderStateRules:
-    """
-    White-Box Unit Test Suite for Business Rule 3 (Order State Machine Transitions).
-    Targets: pretix.base.models.orders.Order & Order._can_be_paid
-    """
 
-    def test_order_transition_pending_to_paid_allowed(self, team_organizer, team_event, team_item, make_order):
-        """Test valid state transition: PENDING order is eligible for payment (returns True)."""
-        with scope(organizer=team_organizer):
-            order = make_order(status=Order.STATUS_PENDING, quantity=2, code='PENDING01')
-            assert order.status == Order.STATUS_PENDING
-            assert order._can_be_paid() is True
+    def test_pending_order_can_be_paid(self, ctx, make_order):
+        """B1 T, B2 F, B3 F (no last date), B5 T."""
+        order = make_order(status=Order.STATUS_PENDING, quantity=2, code='PENDING01')
+        assert order._can_be_paid() is True
 
-    def test_order_transition_pending_to_canceled_allowed(self, team_organizer, team_event, team_item, make_order):
-        """Test valid state transition: PENDING order transitions to CANCELED with timestamp."""
-        with scope(organizer=team_organizer):
-            order = make_order(status=Order.STATUS_PENDING, quantity=1, code='TOCANCEL')
-            order.status = Order.STATUS_CANCELED
-            order.cancellation_date = now()
-            order.save()
+    def test_unapproved_order_cannot_be_paid(self, ctx, make_order):
+        """B2 T."""
+        order = make_order(status=Order.STATUS_PENDING, quantity=1, code='NEED_APPROVAL')
+        order.require_approval = True
+        order.save()
+        res = order._can_be_paid()
+        assert res is not True
+        assert 'not yet approved' in str(res).lower()
 
-            reloaded = Order.objects.get(code='TOCANCEL')
-            assert reloaded.status == Order.STATUS_CANCELED
-            assert reloaded.cancellation_date is not None
+    def test_force_bypasses_approval(self, ctx, make_order):
+        """B1 F: force=True skips the approval and last-date checks."""
+        order = make_order(status=Order.STATUS_PENDING, quantity=1, code='FORCE_PAID')
+        order.require_approval = True
+        order.save()
+        assert order._can_be_paid(force=True) is True
 
-    def test_order_transition_paid_to_refunded_allowed(self, team_organizer, team_event, team_item, make_order):
-        """Test valid state transition: PAID order transitions to REFUNDED."""
-        with scope(organizer=team_organizer):
-            order = make_order(status=Order.STATUS_PAID, quantity=1, code='TOPAYANDREF')
-            assert order.status == Order.STATUS_PAID
+    def test_last_payment_date_passed_rejects(self, ctx, make_order):
+        """B3 T, B4 T: the last date of payment is over."""
+        _set_last_payment_date(ctx, -2)
+        order = make_order(status=Order.STATUS_PENDING, quantity=1, code='LASTDATE1')
+        res = order._can_be_paid()
+        assert 'last date of payments' in str(res)
 
-            # Refund order
-            order.status = Order.STATUS_REFUNDED
-            order.save()
+    def test_last_payment_date_in_future_accepts(self, ctx, make_order):
+        """B3 T, B4 F."""
+        _set_last_payment_date(ctx, 2)
+        order = make_order(status=Order.STATUS_PENDING, quantity=1, code='LASTDATE2')
+        assert order._can_be_paid() is True
 
-            reloaded = Order.objects.get(code='TOPAYANDREF')
-            assert reloaded.status == Order.STATUS_REFUNDED
+    def test_last_payment_date_ignored_with_ignore_date(self, ctx, make_order):
+        """B3 F because ignore_date=True although a passed last date exists."""
+        _set_last_payment_date(ctx, -2)
+        order = make_order(status=Order.STATUS_PENDING, quantity=1, code='LASTDATE3')
+        assert order._can_be_paid(ignore_date=True) is True
 
-    def test_order_invalid_transition_canceled_to_paid_rejected(self, team_organizer, team_event, team_item, make_order):
-        """Invalid State Transition Guard: CANCELED orders must NOT be payable."""
-        with scope(organizer=team_organizer):
-            order = make_order(status=Order.STATUS_PENDING, quantity=1, code='CANCELED_ORDER')
-            order.status = Order.STATUS_CANCELED
-            order.cancellation_date = now()
-            order.save()
+    def test_canceled_order_rejected_when_late_payments_disabled(self, ctx, make_order):
+        """B5 F, B6 T."""
+        ctx.settings.set('payment_term_accept_late', False)
+        order = make_order(status=Order.STATUS_CANCELED, quantity=1, code='CANCELED_ORDER')
+        res = order._can_be_paid()
+        assert res is not True
+        assert 'no late payments' in str(res).lower()
 
-            # Ensure late payments are disabled
-            team_event.settings.set('payment_term_accept_late', False)
+    def test_expired_order_rejected_when_late_payments_disabled(self, ctx, make_order):
+        """B5 F, B6 T for the EXPIRED state."""
+        ctx.settings.set('payment_term_accept_late', False)
+        order = make_order(status=Order.STATUS_EXPIRED, quantity=1, code='EXPIRED_ORDER')
+        assert 'no late payments' in str(order._can_be_paid()).lower()
 
-            # _can_be_paid must NOT return True (returns error message string)
-            res = order._can_be_paid()
-            assert res is not True
-            assert 'no late payments' in str(res).lower()
+    def test_expired_order_late_payment_checks_capacity(self, ctx, make_order):
+        """B6 F (late payments accepted) -> B7: real _is_still_available() decides; capacity free -> True."""
+        ctx.settings.set('payment_term_accept_late', True)
+        order = make_order(status=Order.STATUS_EXPIRED, quantity=1, code='EXPIRED_OK')
+        assert order._can_be_paid() is True
 
-    def test_order_invalid_transition_refunded_to_paid_rejected(self, team_organizer, team_event, team_item, make_order):
-        """Invalid State Transition Guard: REFUNDED orders must NOT be payable."""
-        with scope(organizer=team_organizer):
-            order = make_order(status=Order.STATUS_REFUNDED, quantity=1, code='REFUNDED_ORDER')
-
-            # Ensure late payments are disabled
-            team_event.settings.set('payment_term_accept_late', False)
-
-            res = order._can_be_paid()
-            assert res is not True
-            assert 'no late payments' in str(res).lower()
-
-    def test_order_unapproved_order_cannot_be_paid(self, team_organizer, team_event, team_item, make_order):
-        """Business rule: An order requiring organizer approval cannot be paid until approved."""
-        with scope(organizer=team_organizer):
-            order = make_order(status=Order.STATUS_PENDING, quantity=1, code='NEED_APPROVAL')
-            order.require_approval = True
-            order.save()
-
-            res = order._can_be_paid()
-            assert res is not True
-            assert 'not yet approved' in str(res).lower()
-
-    def test_order_force_flag_bypasses_approval_check(self, team_organizer, team_event, team_item, make_order):
-        """Test branch coverage: force=True allows paying unapproved orders for admin overrides."""
-        with scope(organizer=team_organizer):
-            order = make_order(status=Order.STATUS_PENDING, quantity=1, code='FORCE_PAID')
-            order.require_approval = True
-            order.save()
-
-            # Calling with force=True must bypass require_approval
-            assert order._can_be_paid(force=True) is True
+    def test_expired_order_late_payment_rejected_when_sold_out(self, ctx, team_quota, make_order):
+        """B7 with exhausted capacity -> 'no longer available' message from _is_still_available()."""
+        ctx.settings.set('payment_term_accept_late', True)
+        order = make_order(status=Order.STATUS_EXPIRED, quantity=1, code='EXPIRED_NO')
+        make_order(status=Order.STATUS_PAID, quantity=10, code='SOLDOUT')
+        assert team_quota.availability()[0] == Quota.AVAILABILITY_GONE
+        res = order._can_be_paid()
+        assert res is not True
+        assert 'no longer available' in str(res)

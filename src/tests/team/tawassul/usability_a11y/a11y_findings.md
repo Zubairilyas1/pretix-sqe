@@ -68,3 +68,46 @@ The two remaining audits are F4 (`color-contrast`) and F5 (`aria-input-field-nam
   - passes the cookie and that same User-Agent to Lighthouse,
   - **rejects any report whose final URL is not the intended screen.**
 - The invalid early reports were deleted, and only verified reports are kept.
+
+
+## 6. Usability task tests (one per workflow) - `test_usability_tasks.py` (3 tests, pass)
+| Test | Workflow | What is checked |
+| :--- | :-: | :--- |
+| `test_task_w1_create_quota_reject_then_correct` | W1 | Quota screen opens; size **-5** is refused and the message says *"Value must be greater than or equal to 0."* (explains the correction); nothing is stored; size 25 then shows *"The new quota has been created"* and the quota is in the database |
+| `test_task_w1_keyboard_only_quota_form` | W1 | Keyboard only: focus goes name -> size -> product checkbox -> **Save** in that order; Space ticks the product; **Enter submits**; confirmation shown, quota stored |
+| `test_task_w2_buy_tickets_reject_then_correct` | W2 | 3 tickets with a limit of 2 per order are refused with *"You cannot select more than 2 items of the product ..."* (names the limit); nothing reserved; 2 tickets complete the checkout, *"Your order has been placed successfully"* is shown, the order has 2 positions and the quota read-back is 2 lower |
+
+Together with `test_keyboard_nav.py` (W2 checkout by keyboard) both workflows are covered by keyboard tests.
+
+## 7. Lighthouse (accessibility, best practices, **SEO**) and axe on the key screen of every use case
+Run on the production-like perf server with real sessions (`lighthouse_usecases.py`; organizer logged in, customer
+with a real cart). Every report is checked to have audited the intended URL. Raw reports:
+`reports/usecases/lighthouse_uc*.report.{html,json}`, `reports/usecases/axe_uc*.json`, `reports/usecases/summary.json`.
+
+An issue reported by both tools for the same rule and element is **counted once** (Lighthouse's accessibility audits
+are axe rules; the element is matched on its last selector).
+
+| # | Rule / audit | Element | Screens | Found by | User impact | Proposed fix |
+| :-: | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | `aria-input-field-name` | `#select2-id_category-container` | uc1 | **both** (counted once) | serious: ARIA input fields must have an accessible name | Give the combobox an accessible name (aria-labelledby pointing at the visible label). |
+| 2 | `color-contrast` | `.context-meta` | uc1, uc2 | **both** (counted once) | serious: Elements must meet minimum color contrast ratio thresholds | Darken the text/foreground colour to reach a contrast ratio of at least 4.5:1 (3:1 for large text). |
+| 3 | `color-contrast` | `.select2-selection__placeholder` | uc1 | **both** (counted once) | serious: Elements must meet minimum color contrast ratio thresholds | Darken the text/foreground colour to reach a contrast ratio of at least 4.5:1 (3:1 for large text). |
+| 4 | `crawlable-anchors` | `div.lb-outerContainer > div.lb-container > div.lb-loader > a.lb-cancel` | uc1, uc2 | Lighthouse (seo) | seo: Links are not crawlable | Use real hrefs on anchors (not '#' or javascript:). |
+| 5 | `is-crawlable` | `(page)` | uc4, uc6 | Lighthouse (seo) | seo: Page is blocked from indexing | Intended: back-office and personal order pages are noindex on purpose (no fix). |
+| 6 | `is-crawlable` | `http://localhost:8000/robots.txt` | uc1, uc2, uc3, uc6 | Lighthouse (seo) | seo: Page is blocked from indexing | Intended: back-office and personal order pages are noindex on purpose (no fix). |
+| 7 | `meta-description` | `(page)` | uc1, uc2, uc3, uc4, uc5, uc6 | Lighthouse (seo) | seo: Document does not have a meta description | Add a <meta name=description> with a summary of the page. |
+
+| Screen | Use case | Accessibility | Best practices | SEO | axe rules / elements |
+| :--- | :--- | :-: | :-: | :-: | :-: |
+| uc1: Create a new product | UC-1 configure item and quota | 93 | 100 | 50 | 2 / 3 |
+| uc2: Shop status (go live) | UC-2 publish event / sales window | 96 | 100 | 50 | 1 / 1 |
+| uc3: Checkout - your information | UC-3 checkout | 100 | 100 | 54 | 0 / 0 |
+| uc4: Voucher redemption | UC-4 apply voucher | 100 | 100 | 54 | 0 / 0 |
+| uc5: Shop page with a sold-out product | UC-5 sold-out category | 100 | 100 | 91 | 0 / 0 |
+| uc6: Cancel order | UC-6 cancel pending order | 100 | 100 | 54 | 0 / 0 |
+
+**Reading.** The customer screens (UC-3..UC-6) have no accessibility violation. The two organizer screens keep the two
+issues that were deliberately left open (F4 contrast, F5 select2 name; risk PR-A11Y-02). SEO scores are low by design on
+back-office and personal order pages (`noindex`, robots.txt); the real SEO gap is the missing `meta description`, which
+affects the public shop page (UC-5, SEO 91) as well - proposed fix: render the event's short description as
+`<meta name="description">` in the presale base template.

@@ -29,6 +29,13 @@ How it works
      required                      EP missing (reject)
      x-business-limit              BVA relative to a runtime value
                                    (available-1, available, available+1)
+     array items (objects)         every property of the item object is
+                                   varied in the first element: `positions[].price`
+     parameters (path/query/header) the same keywords applied to parameters;
+                                   x-runtime-ref adds EP existing/unknown and,
+                                   for integer ids, BVA relative to the largest
+                                   existing id (max-1, max, max+1);
+                                   x-reject-status = status a rejected value gets
 
 4. Each case says what the API SHOULD do (`expected`: accept / reject)
    according to the spec. Tests send baseline + exactly one changed field.
@@ -283,6 +290,12 @@ def cases_for_field(op_id, method, path, field, schema, required):
             for label, n in (("items_max-1", mx - 1), ("items_max", mx), ("items_max+1", mx + 1)):
                 add("BVA", label, n, ACCEPT if n <= mx else REJECT, f"maxItems {mx}", kind="array_length")
 
+    # ---- references to objects that must exist at runtime (x-runtime-ref) ----
+    ref = schema.get("x-runtime-ref")
+    if ref:
+        add("EP", "existing", "{{" + ref + "}}", ACCEPT, f"an existing {ref}", kind="runtime_ref")
+        add("EP", "unknown", "{{unknown_" + ref + "}}", REJECT, f"well-formed but no such {ref}", kind="runtime_ref")
+
     # ---- business limits that depend on runtime data (Rule 1) ----
     if "x-business-limit" in schema:
         src = schema["x-business-limit"]["quantity-source"]
@@ -290,6 +303,52 @@ def cases_for_field(op_id, method, path, field, schema, required):
             add("BVA", label, off, ACCEPT if off <= 0 else REJECT,
                 f"quantity relative to {src}", kind="relative_to_runtime")
     return c
+
+
+def parameter_cases(spec):
+    """EP / BVA for path, query and header parameters of every operation.
+
+    The constraint keywords of the parameter schema are used exactly as for body fields. In addition:
+      * x-runtime-ref: <object>   -> EP "existing" (accept) and EP "unknown" (reject); for integer ids
+                                     3-point BVA relative to the largest existing id
+      * x-reject-status: <code>   -> HTTP status a rejected value must get (default 404 path, 400 otherwise)
+    Classes that cannot be sent in a URL or header (null, missing for path parameters, an object as
+    "wrong type" of a string) are skipped.
+    """
+    out = []
+    for path, item in spec["paths"].items():
+        common = item.get("parameters", [])
+        for method in HTTP_METHODS:
+            op = item.get(method)
+            if not op:
+                continue
+            for raw in common + op.get("parameters", []):
+                prm = inline_refs(spec, raw)
+                loc, name, schema = prm["in"], prm["name"], prm.get("schema", {})
+                field = f"{loc}:{name}"
+                reject_status = schema.get("x-reject-status", 404 if loc == "path" else 400)
+                cs = cases_for_field(op["operationId"], method.upper(), path, field, schema,
+                                     prm.get("required", False) and loc != "path")
+                cs = [c for c in cs if c["class"] != "null"
+                      and not (c["class"] == "wrong_type" and schema.get("type") == "string")
+                      and not (loc == "path" and c["technique"] == "BVA" and c["class"] in ("min", "min+1"))]
+                ref = schema.get("x-runtime-ref")
+                if ref:
+                    # for an id the "valid" partition is "existing", not a number in range
+                    cs = [c for c in cs if c["class"] != "valid"]
+                    add = lambda *a, **k: cs.append(_case(op["operationId"], method.upper(), path, field, *a, **k))  # noqa
+                    if schema.get("type") == "integer":
+                        for label, off in (("max_id-1", -1), ("max_id", 0), ("max_id+1", 1)):
+                            add("BVA", label, off, ACCEPT if off <= 0 else REJECT,
+                                f"relative to the largest existing {ref} id", kind="relative_to_runtime")
+                for c in cs:
+                    c["location"] = loc
+                    c["param"] = name
+                    c["reject_status"] = reject_status
+                    if c["value_kind"] == "value":
+                        c["value_kind"] = "parameter"
+                out += cs
+    return out
 
 
 def generate(spec):
@@ -305,9 +364,17 @@ def generate(spec):
                                              sub in set(prop.get("required", [])))
             else:
                 cases += cases_for_field(op_id, method, path, name, prop, name in required)
+                items = prop.get("items", {}) if prop.get("type") == "array" else {}
+                if items.get("type") == "object":
+                    # properties of the objects inside the array, varied in the first element
+                    for sub, subprop in items.get("properties", {}).items():
+                        cases += cases_for_field(op_id, method, path, f"{name}[].{sub}", subprop,
+                                                 sub in set(items.get("required", [])))
         if "x-business-limit" in schema:
             cases += cases_for_field(op_id, method, path, "__quantity__",
                                      {"x-business-limit": schema["x-business-limit"]}, False)
+
+    cases += parameter_cases(spec)
 
     baselines = {op_id: copy.deepcopy(schema.get("example", {}))
                  for op_id, _, _, schema in request_operations(spec)}

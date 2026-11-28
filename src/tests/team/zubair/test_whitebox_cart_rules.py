@@ -1,13 +1,12 @@
 import datetime
-from decimal import Decimal
 
 import pytest
 from django.utils.timezone import now
 from django_scopes import scope
 
-from pretix.base.models import CartPosition, Item, Quota
+from pretix.base.models import CartPosition, Quota
 from pretix.base.services.cart import (
-    CartError, clear_cart, extend_cart_reservation, remove_cart_position,
+    clear_cart, extend_cart_reservation, remove_cart_position,
 )
 
 
@@ -74,8 +73,8 @@ class TestWhiteboxCartRules:
         with scope(organizer=team_organizer):
             cart_id = 'partial-cart'
             cp1 = make_cart_position(cart_id=cart_id)
-            cp2 = make_cart_position(cart_id=cart_id)
-            cp3 = make_cart_position(cart_id=cart_id)
+            make_cart_position(cart_id=cart_id)
+            make_cart_position(cart_id=cart_id)
             assert team_quota.availability()[1] == 7
 
             # Remove position 1 (Celery task expects event.pk)

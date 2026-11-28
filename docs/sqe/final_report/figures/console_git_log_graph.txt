@@ -1,0 +1,27 @@
+$ git log --graph --oneline --decorate -25 --all
+* 00cb12926 (origin/demo/ci-blocked-oversell, demo/ci-blocked-oversell) demo(ci): change sold-out check in quota orders stage from <= 0 to < 0
+| * 12e0a96ae (origin/fix/dz01-waitinglist-now-dt, fix/dz01-waitinglist-now-dt) fix(quota): evaluate waiting-list auto-disable at now_dt (D-Z01)
+| * 0c434e822 test(quota): add regression test for D-Z01 waiting-list auto-disable ignoring now_dt
+|/  
+* 117e285ea (HEAD -> zubair) docs(sqe): remove emoji, drawn screenshots and the withdrawn defect log
+* b39681ce9 (origin/zubair) test(area3): run the live-server suite on a temporary SQLite file
+* a316a9c38 test(area3): wait for address-form request before keyboard Tab path
+* 96c0fec63 docs(sqe): remove the old master report, Area 1 report and defect log
+* 4fb339252 test(security): passive ZAP scan of both complete workflows
+* b5e8f60a6 docs(report): readable table layout in the final PDF
+* b9912e921 test(e2e): record full Area 3 run with Playwright HTML report
+* a6fc959c2 docs(management): final numbers in plan, completion and progress reports, AI record
+* 8b153163c test(sqe): measure SonarQube V(G), add RBAC decision log, record W-09..W-12
+* 0ef0cfad4 test(perf): re-run k6 with pre-set limits, excluded warm-up and environment record
+* 4743daba3 test(a11y): add usability task tests and per-use-case Lighthouse/axe audit
+* f844bfdd9 test(perf): fix limits and protocol before the k6 re-run
+* e053dc281 test(api): complete API coverage criteria, parameter EP/BVA and decision tables
+* 01dfff43f test(mutation): record run 2 (96.78 %) and classify all 65 run-1 survivors
+* fdb184942 docs(report): build the final PDF from the repository documents
+* a0dd5c25f docs(sqe): add Area 1 coverage, MCC and CI reports, completion report
+* f7678821a test(mutation): record baseline Cosmic Ray run and kill surviving mutants
+* 4503942a5 ci(sqe): install the pinned extra packages the team suites import
+* 27aa4d19b docs(management): add test plan and progress report, correct register, RTM, defects and AI record
+* 3d9c638fe ci(sqe): gate every pull request on all team suites, coverage, SonarQube and mutation
+* 565d121d0 test(mutation): run Cosmic Ray on quotas.py with two custom business-rule operators
+* 8805be92f chore(sqe): withdraw unsupported Area 1 evidence

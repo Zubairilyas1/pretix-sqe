@@ -1,0 +1,3 @@
+JUSTIFIED  quotas.py:361->363  Infeasible branch: the query at L304-305 only returns order lines with status PAID or PENDING, so after `if status == PAID` the `elif status == PENDING` can never be False.
+Scoped functions checked: 15
+COVERAGE GATE PASSED: 100% statement and branch coverage on the business-rule scope
