@@ -53,6 +53,15 @@ def test_keyboard_only_checkout(page, shop_url, shop, team_item, team_quota):
     with page.expect_navigation():
         page.keyboard.press("Enter")
     page.wait_for_url("**/checkout/questions/**")
+    # pretix's addressform.js disables street/zipcode/city while it fetches the country's address rules
+    # (/js_helpers/address_form/) and re-enables them when the response arrives. Disabled fields are skipped by
+    # Tab, so wait for that request like a user would wait for the page to finish loading (it was still running
+    # on the faster CI runner, which made the Tab path skip those fields).
+    page.wait_for_function(
+        "() => ['textarea[name$=street]', 'input[name$=zipcode]', 'input[name$=city]']"
+        ".every(s => { const e = document.querySelector(s); return e && !e.disabled; })",
+        timeout=15_000,
+    )
 
     # 3. contact form: email has autofocus; record the order of the rest
     assert page.evaluate("document.activeElement.name") == "email"
