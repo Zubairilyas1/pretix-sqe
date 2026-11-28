@@ -5,7 +5,7 @@
 
 ---
 
-## 📋 Comprehensive AI Usage Log
+## Comprehensive AI Usage Log
 
 | # | Date | Team Member | AI Tool & Model | Exact Purpose & Prompt Summary | AI Generated Content | Human Verification & Modifications Made |
 | :---: | :---: | :---: | :---: | :--- | :--- | :--- |

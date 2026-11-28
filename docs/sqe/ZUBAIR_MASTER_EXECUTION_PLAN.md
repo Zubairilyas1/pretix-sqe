@@ -8,7 +8,7 @@
 
 ---
 
-## 🧭 Executive Overview of Zubair's Technical Ownership
+## Executive Overview of Zubair's Technical Ownership
 
 ```mermaid
 flowchart TD
@@ -27,7 +27,7 @@ flowchart TD
 
 ---
 
-## 🚀 FEATURE 1: White-Box Unit Testing (100% Statement & Branch Coverage)
+## FEATURE 1: White-Box Unit Testing (100% Statement & Branch Coverage)
 
 * **Marks Weightage:** 16 Marks (CLO2)  
 * **Target Source Modules:**
@@ -76,7 +76,7 @@ flowchart TD
 
 ---
 
-## 🔬 FEATURE 2: Multiple Condition Coverage (MCC) & MC/DC Pairs
+## FEATURE 2: Multiple Condition Coverage (MCC) & MC/DC Pairs
 
 * **Objective:** Fulfill the strict rubric requirement: *"Critical module: complete MCC, then MC/DC pairs from the MCC tables. Cover all four business rules."*
 * **Target Decision:** Business Rule 2 — Item Purchasability Decision in `pretix.base.models.items.Item.is_available()`:
@@ -130,7 +130,7 @@ Where:
 
 ---
 
-## 🧬 FEATURE 3: Mutation Testing (`mutmut`) & Custom Operators
+## FEATURE 3: Mutation Testing (`mutmut`) & Custom Operators
 
 * **Marks Weightage:** 8 Marks (CLO3)  
 * **Tool:** `mutmut` (Python mutation framework)  
@@ -173,7 +173,7 @@ Where:
 
 ---
 
-## 🛡️ FEATURE 4: GitHub Actions CI/CD Quality Gate
+## FEATURE 4: GitHub Actions CI/CD Quality Gate
 
 * **Marks Weightage:** Part of CI & Quality Gate (CLO3)  
 * **Configuration File:** `.github/workflows/sqe_quality_gate.yml`
@@ -205,7 +205,7 @@ Where:
 
 ---
 
-## 🤝 FEATURE 5: Shared Test Management Co-Ownership & AI Record
+## FEATURE 5: Shared Test Management Co-Ownership & AI Record
 
 * **Role:** Zubair co-authors test management documents in `src/tests/team/shared_management/`:
   - **Test Plan:** Write the scope, entry/exit criteria, and suspension criteria for White-box and Mutation testing.
@@ -216,7 +216,7 @@ Where:
 
 ---
 
-## 🎤 FEATURE 6: Zubair's Viva Defense & Live Task Script (20 Marks)
+## FEATURE 6: Zubair's Viva Defense & Live Task Script (20 Marks)
 
 During the viva, the examiner will test Zubair individually. Here is the exact defense script:
 

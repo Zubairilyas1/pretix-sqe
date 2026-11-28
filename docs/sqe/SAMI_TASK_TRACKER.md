@@ -6,15 +6,15 @@
 
 | # | Milestone | Branch | Status | Evidence |
 | :-: | :--- | :--- | :-: | :--- |
-| S1 | Master plan and tracker | `member/sami` | ✅ Done | `b7550d351` |
-| S2 | OpenAPI 3.0 spec (19 operations) | `sami/feat-openapi-spec` | ✅ Done | `62d788f11`, `8661e5022`; `test_openapi_spec.py` |
-| S3 | EP/BVA test data generator (167 cases) | `sami/feat-test-data-generator` | ✅ Done | `566481031`; `test_generator.py` |
-| S4 | API EP/BVA tests + API coverage | `sami/feat-api-ep-bva` | ✅ Done | `144d2a040` |
-| S5 | Rules, transitions, duplicates, auth | `sami/feat-api-negative-rules` | ✅ Done | `2f5d96ef8` |
-| S6 | Cross-workflow test + weaknesses report | `sami/feat-cross-workflow` | ✅ Done | `ab3c5deca`; `endpoint_weaknesses.md` |
-| S7 | Constraint-change regeneration demo | `sami/feat-regeneration-demo` | ✅ Done | `d36eee675`; `REGENERATION_REPORT.md` |
-| S8 | Shared management inputs (risks, RTM rows, estimates, defects as Issues) | `sami/docs-shared-management` | ⏳ In progress | `bbd29933a` (AI log rows); risk/RTM/estimates pending |
-| S9 | Push branches, open PRs into `member/sami`, then `main` | — | ⏳ PR open into `main` | see PR |
+| S1 | Master plan and tracker | `member/sami` | Done | `b7550d351` |
+| S2 | OpenAPI 3.0 spec (19 operations) | `sami/feat-openapi-spec` | Done | `62d788f11`, `8661e5022`; `test_openapi_spec.py` |
+| S3 | EP/BVA test data generator (167 cases) | `sami/feat-test-data-generator` | Done | `566481031`; `test_generator.py` |
+| S4 | API EP/BVA tests + API coverage | `sami/feat-api-ep-bva` | Done | `144d2a040` |
+| S5 | Rules, transitions, duplicates, auth | `sami/feat-api-negative-rules` | Done | `2f5d96ef8` |
+| S6 | Cross-workflow test + weaknesses report | `sami/feat-cross-workflow` | Done | `ab3c5deca`; `endpoint_weaknesses.md` |
+| S7 | Constraint-change regeneration demo | `sami/feat-regeneration-demo` | Done | `d36eee675`; `REGENERATION_REPORT.md` |
+| S8 | Shared management inputs (risks, RTM rows, estimates, defects as Issues) | `sami/docs-shared-management` | In progress | `bbd29933a` (AI log rows); risk/RTM/estimates pending |
+| S9 | Push branches, open PRs into `member/sami`, then `main` | — | PR open into `main` | see PR |
 
 ## Current results
 `cd src && ../.venv/Scripts/python -m pytest tests/team/sami -n 4`

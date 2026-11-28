@@ -13,7 +13,7 @@
 
 ---
 
-## 🤖 UNIVERSAL AI AGENT SYSTEM PROMPT (COPY-PASTE FOR AGENTS)
+## UNIVERSAL AI AGENT SYSTEM PROMPT (COPY-PASTE FOR AGENTS)
 
 > **Instructions for the Team:** When you open ChatGPT, Claude, Cursor, Copilot, or Antigravity, **copy and paste the block below into your first prompt** along with your name. The AI agent will immediately understand your exact assignment, the codebase, and all rules!
 
@@ -42,7 +42,7 @@ Please read my designated partition in the project guidelines below, examine the
 
 ---
 
-## 🌿 GIT BRANCHING STRATEGY & COLLABORATION RULES
+## GIT BRANCHING STRATEGY & COLLABORATION RULES
 
 ### Why This is Strictly Graded
 > **Instructor Rule (Page 5 & 7 of Project Spec):**  
@@ -103,7 +103,7 @@ git config user.email "tawassul@yourdomain.edu.pk"
 
 ---
 
-## 📁 TEAM REPOSITORY DIRECTORY STRUCTURE
+## TEAM REPOSITORY DIRECTORY STRUCTURE
 
 All custom tests and scripts must be organized in this clean structure:
 
@@ -174,7 +174,7 @@ pretix/
 
 ---
 
-## 👤 PARTITION 1: ZUBAIR (MEMBER 1) — COMPLETE EXECUTION SPECIFICATION
+## PARTITION 1: ZUBAIR (MEMBER 1) — COMPLETE EXECUTION SPECIFICATION
 
 ### Technical Ownership: Area 1
 * **Marks Weightage:** 5 (Static Analysis) + 16 (White-Box) + 8 (Mutation & CI) = **29 Individual Marks** (+ shared management & viva).
@@ -238,7 +238,7 @@ pretix/
 
 ---
 
-## 👤 PARTITION 2: SAMI (MEMBER 2) — COMPLETE EXECUTION SPECIFICATION
+## PARTITION 2: SAMI (MEMBER 2) — COMPLETE EXECUTION SPECIFICATION
 
 ### Technical Ownership: Area 2
 * **Marks Weightage:** 7 (Data Generator) + 10 (API & Integration) = **17 Individual Marks** (+ shared management & viva).
@@ -287,7 +287,7 @@ pretix/
 
 ---
 
-## 👤 PARTITION 3: TAWASSUL (MEMBER 3) — COMPLETE EXECUTION SPECIFICATION
+## PARTITION 3: TAWASSUL (MEMBER 3) — COMPLETE EXECUTION SPECIFICATION
 
 ### Technical Ownership: Area 3
 * **Marks Weightage:** 3 (Use Case Spec) + 6 (Playwright E2E) + 5 (Usability & A11y) + 6 (Security) + 5 (Perf & Recovery) = **25 Individual Marks** (+ shared management & viva).
@@ -350,7 +350,7 @@ pretix/
 
 ---
 
-## 🤝 SHARED RESPONSIBILITIES (ALL 3 MEMBERS TOGETHER)
+## SHARED RESPONSIBILITIES (ALL 3 MEMBERS TOGETHER)
 
 All members contribute equally to Test Management. These files reside in `tests/team/shared_management/`:
 
@@ -367,7 +367,7 @@ All members contribute equally to Test Management. These files reside in `tests/
 
 ---
 
-## 📝 MANDATORY AI-USE DISCLOSURE LOG TEMPLATE
+## MANDATORY AI-USE DISCLOSURE LOG TEMPLATE
 
 > **Strict Rule from Page 7 of Course Document:**  
 > *"AI tools are allowed only if you check every output and disclose it in an AI-use record (tool, purpose, output, what you checked or changed). Keep your prompts. Undisclosed AI use gets zero marks."*
@@ -386,7 +386,7 @@ Every member must log every AI query in `tests/team/shared_management/AI_USE_DIS
 
 ---
 
-## 🎯 VIVA DEFENSE & LIVE TASK PREPARATION GUIDE
+## VIVA DEFENSE & LIVE TASK PREPARATION GUIDE
 
 ### Zubair (Member 1) Defense Strategy:
 1. **Explain CFG & Cyclomatic Complexity:** Be ready to draw the CFG on a whiteboard, identify predicate nodes, and explain why SonarQube's complexity matches or differs from your formula $E - N + 2P$.
@@ -405,7 +405,7 @@ Every member must log every AI query in `tests/team/shared_management/AI_USE_DIS
 
 ---
 
-## 📦 FINAL PACKAGE SUBMISSION CHECKLIST
+## FINAL PACKAGE SUBMISSION CHECKLIST
 
 - [ ] Repository ZIP named `Project_RollNumber1_RollNumber2_RollNumber3_Section.zip`.
 - [ ] Preserved `.git` folder inside ZIP to prove commit history for Zubair, Sami, and Tawassul.
