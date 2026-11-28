@@ -40,7 +40,7 @@ EC-3 is re-measured on the production database (PostgreSQL).
 | # | Deviation | Effect |
 | :-: | :--- | :--- |
 | DV-1 | Area 1 evidence of 25-26 Nov (coverage, MCC, mutation, CI PR) was not valid and was redone on 27 Nov | One extra day of Area 1 work; reports rebuilt from real tool output; risk PJ-INT-01 |
-| DV-2 | Defects were tracked only as strict xfail until 27 Nov; GitHub Issues created at the end | Reopen rate could only be measured from 27 Nov |
+| DV-2 | Defects were tracked only as strict xfail until 27 Nov; GitHub Issues #16-#34 were created on 28 Nov | Reopen rate could only be measured from 27 Nov |
 | DV-3 | All work in one calendar week instead of four | One weekly report with daily checkpoints |
 | DV-5 | The Area 2 and Area 3 gaps found by the audit were closed by Zubair on 27 Nov on the `zubair` branch, at the team's request (AI-use rows 20-21) | Those commits carry Zubair's name; Sami and Tawassul reviewed and must be able to explain them |
 | DV-4 | Mutation testing uses Cosmic Ray (listed in the brief) instead of mutmut, because mutmut 3 does not run natively on Windows and has no plug-in mechanism for custom operators | Custom operators are real Cosmic Ray plug-ins |
@@ -51,12 +51,13 @@ EC-3 is re-measured on the production database (PostgreSQL).
 | P1 | W-01, W-02, W-07, W-08, W-09, A3-D01, A3-D04 |
 | P2 | W-03, W-05, W-12, A3-D02, A3-D06 |
 | P3 | W-04, W-06, W-10, W-11, A3-D05 |
-| Closed | A3-D03 (fixed), D-Z01 (fixed by pull request) |
+| Closed | A3-D03 (fixed, issue #27 closed) |
+| Fix ready, awaiting merge | D-Z01: pull request #36 (regression test red, fix green); issue #16 closes when #36 is merged |
 
 ## 6. Residual risk per risk
 | Risk | Score before | Residual | Reason |
 | :--- | :-: | :--- | :--- |
-| PR-WB-01 capacity off by one | 12 | **Low** | 100 % stmt/branch, BVA at size-1/size/size+1, mutation >= 85 % incl. verdict operator, D-Z01 fixed |
+| PR-WB-01 capacity off by one | 12 | **Low** | 100 % stmt/branch, BVA at size-1/size/size+1, mutation >= 85 % incl. verdict operator, D-Z01 fix in PR #36 |
 | PR-WB-02 order paid when it must not be | 10 | **Low** | MCC O1, all `_can_be_paid` branches, 14 state-transition tests, all `SwapOrderStatus` mutants killed |
 | PR-WB-03 stale cache | 9 | **Low** | cache age BVA (119/120/121 s), TTL and lock tests |
 | PR-API-01 negative price via API | 12 | **High** | W-01, W-02, W-09 open |
@@ -82,5 +83,5 @@ EC-3 is re-measured on the production database (PostgreSQL).
 | :--- | :--- |
 | Defect density | 19 confirmed defects / 8.11 KLOC = **2.34 per KLOC** |
 | Requirements coverage | 8/8 = **100 %** (7/8 at all three levels) |
-| Reopen rate | 0 reopened / 2 closed = **0 %** (A3-D03, D-Z01) |
+| Reopen rate | 0 reopened / 1 closed = **0 %** (A3-D03; D-Z01 counts as closed once PR #36 is merged) |
 | Estimation | see `PROJECT_ESTIMATION_PERT.md` (actual vs expected) |

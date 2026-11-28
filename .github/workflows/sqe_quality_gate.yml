@@ -156,10 +156,13 @@ jobs:
           path: sonar-measures.json
 
   mutation:
+    # All 715 mutants on one 4-core runner take about 4 hours (338 were done after 119 min on 28 Nov), so the
+    # mutants are split over 8 parallel shard jobs; this job merges them, checks that every mutant was executed
+    # exactly once, and enforces the threshold on the merged score.
     name: "Gate 5 - Mutation score (Cosmic Ray + custom operators)"
     runs-on: ubuntu-latest
-    needs: unit-coverage
-    timeout-minutes: 120
+    needs: mutation-shard
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -169,15 +172,46 @@ jobs:
         run: |
           uv venv --python "$PYTHON_VERSION"
           uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt -e src/tests/team/zubair/mutation/sqe_mutation_operators
-      - name: Run Cosmic Ray and enforce the mutation threshold
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-shard-*
+          path: shards
+      - name: Merge the shards and enforce the mutation threshold
         run: |
           .venv/bin/python src/tests/team/zubair/mutation/run_mutation.py \
-            --workers 4 --fail-under "$MUTATION_THRESHOLD" --out mutation-results
+            --merge shards/mutation-shard-* --fail-under "$MUTATION_THRESHOLD" --out mutation-results
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: mutation-results
           path: mutation-results/
+
+  mutation-shard:
+    name: "Gate 5 shard ${{ matrix.shard }}/8"
+    runs-on: ubuntu-latest
+    needs: unit-coverage
+    timeout-minutes: 90
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install
+        run: |
+          uv venv --python "$PYTHON_VERSION"
+          uv pip install -e ".[dev]" -r src/tests/team/requirements-sqe.txt -e src/tests/team/zubair/mutation/sqe_mutation_operators
+      - name: Run Cosmic Ray on this shard (every mutant must finish)
+        run: |
+          .venv/bin/python src/tests/team/zubair/mutation/run_mutation.py \
+            --workers 4 --shard "${{ matrix.shard }}/8" --out mutation-shard
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mutation-shard-${{ matrix.shard }}
+          path: mutation-shard/
 
   deploy:
     name: "Deploy release candidate (only if every gate passed)"

@@ -184,3 +184,22 @@ def _scopes_off_in_test_thread():
     server thread keeps its own scoping, so production behaviour is unchanged."""
     with scopes_disabled():
         yield
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Evidence screenshots for the report: with SQE_SCREENSHOT_DIR set, save the browser page as it is at the end
+    of every Playwright test (the screen the test's assertions were made on). Off by default and in CI."""
+    outcome = yield
+    out_dir = os.environ.get("SQE_SCREENSHOT_DIR")
+    page = item.funcargs.get("page") or item.funcargs.get("control_login")
+    if not out_dir or call.when != "call" or page is None:
+        return
+    try:
+        if page.is_closed():
+            return
+        name = re.sub(r"\[.*\]$", "", item.name)
+        os.makedirs(out_dir, exist_ok=True)
+        page.screenshot(path=os.path.join(out_dir, f"{name}.png"), full_page=True)
+    except Exception as e:  # a missing screenshot must never change a test result
+        print(f"screenshot for {item.name} not saved: {e}")

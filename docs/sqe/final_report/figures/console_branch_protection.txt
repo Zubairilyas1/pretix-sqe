@@ -1,0 +1,10 @@
+$ gh.exe api repos/Zubairilyas1/pretix-sqe/branches/main/protection --jq '"required status checks on main:", (.required_status_checks.checks[] | "  " + .context), "required approving reviews: \(.required_pull_request_reviews.required_approving_review_count)", "allow force pushes: \(.allow_force_pushes.enabled)", "allow deletions: \(.allow_deletions.enabled)"'
+required status checks on main:
+  Gate 1 - Unit tests + 100% business-rule coverage
+  Gate 2 - API and integration tests
+  Gate 3 - Playwright E2E, accessibility, RBAC, recovery
+  Gate 4 - SonarQube quality gate
+  Gate 5 - Mutation score (Cosmic Ray + custom operators)
+required approving reviews: 1
+allow force pushes: false
+allow deletions: false

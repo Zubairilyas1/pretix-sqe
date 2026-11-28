@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-28 12:04",
+  "image": "sonarqube:25.1.0.102122-community",
+  "quotas": {
+    "coverage": "99.7",
+    "alert_status": "OK",
+    "bugs": "0",
+    "reliability_rating": "1.0",
+    "code_smells": "7",
+    "duplicated_lines_density": "0.0",
+    "branch_coverage": "99.3",
+    "security_rating": "1.0",
+    "vulnerabilities": "0",
+    "line_coverage": "100.0",
+    "sqale_rating": "1.0"
+  }
+}

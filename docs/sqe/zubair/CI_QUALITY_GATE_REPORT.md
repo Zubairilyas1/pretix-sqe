@@ -10,8 +10,14 @@ branches, manual dispatch. Runner: GitHub Actions `ubuntu-latest`, Python 3.11.
 | 2 | API and integration tests | any Area 2 test fails, or a strict xfail unexpectedly passes (a tracked defect changed behaviour) | JUnit XML |
 | 3 | Playwright E2E, accessibility, RBAC, recovery | any Area 3 test fails | JUnit XML, Playwright HTML report |
 | 4 | SonarQube quality gate | SonarQube project gate is ERROR (`sonar.qualitygate.wait=true` makes the scanner exit non-zero) | measures JSON |
-| 5 | Mutation score | Cosmic Ray mutation score on `quotas.py` < threshold | session DB, text and HTML report, summary, survivors |
+| 5 | Mutation score | Cosmic Ray mutation score on `quotas.py` < threshold, **or** any mutant not executed. The 715 mutants run in 8 parallel shard jobs (`--shard i/8`, 4 workers each); the Gate 5 job merges them (`--merge`), checks that every mutant was executed exactly once and applies the threshold to the merged score | per-shard session DBs; merged session DB, text and HTML report, summary, survivors |
 | - | Deploy release candidate | runs **only** on `main` and **only** if gates 1-5 succeeded (`needs:`); packages the source archive + SHA256 | release-candidate artifact |
+
+**Why Gate 5 is sharded (28 Nov 2026):** the first version ran all mutants in one job with a 120-minute limit. On
+GitHub's 4-core runner it was cancelled at the limit after 338 of 715 mutants (326 killed, 12 survived; artifact of
+run 46115658134), i.e. a full run needs about 4 hours there (the whole Area 1 suite took 95 s in Gate 1 on the runner,
+with coverage, versus 14 s locally without coverage). Splitting the same mutants over 8 jobs keeps the measurement identical and brings Gate 5
+to well under an hour. A run in which any mutant was not executed now fails the gate instead of reporting a score.
 
 **No escape hatches:** the workflow contains no `continue-on-error`, no `|| true`, no `exit 0` fallback and no
 `if: always()` on a gate step (`always()` is used only on artifact uploads, which cannot turn a failed job green).
@@ -38,7 +44,20 @@ The change makes a quota with exactly `size` sold tickets look available (off-by
 | Gate 5 skipped (needs gate 1) | - |
 | Merge button | blocked by branch protection |
 
-Evidence: pull request link and run link: _filled in after the PR has run_ (section 5).
+**Observed on 28 Nov 2026** (pull request [#35](https://github.com/Zubairilyas1/pretix-sqe/pull/35), run
+[46116193890](https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116193890)): the defect is caught by all three
+test areas, not only by the unit tests.
+
+| Gate | Result on PR #35 |
+| :--- | :--- |
+| Gate 1 unit + coverage | **failed**: 19 failed, 199 passed |
+| Gate 2 API | **failed**: 4 failed, 486 passed, 30 xfailed |
+| Gate 3 Playwright E2E | **failed**: 1 failed, 63 passed, 4 xfailed |
+| Gate 4 SonarQube | **failed** (its coverage step runs the Area 1 tests: 19 failed) |
+| Gate 5 mutation | skipped (needs gate 1) |
+| Merge | `mergeStateStatus: BLOCKED`; branch protection on `main` requires Gates 1-5 (figures in chapter 7) |
+
+The pull request stays open and unmerged as evidence.
 
 ## 4. Documented fix through a pull request (fails before, passes after)
 Defect **D-Z01** (GitHub Issue, see defect log): `QuotaAvailability` ignored `now_dt` for the waiting-list auto-disable date.
@@ -46,12 +65,20 @@ Branch `fix/dz01-waitinglist-now-dt`:
 1. commit `test(quota): add regression test for D-Z01 ...` - adds `test_dz01_waitinglist_now_dt.py`; **gate 1 fails** (`assert 1 == 0` for the day-after-tomorrow case);
 2. commit `fix(quota): evaluate waiting-list auto-disable at now_dt (D-Z01)` - passes `now_dt` to `_compute_waitinglist`; **all gates pass**; the PR closes the issue.
 
+**Observed on 28 Nov 2026** (pull request [#36](https://github.com/Zubairilyas1/pretix-sqe/pull/36), closes issue
+[#16](https://github.com/Zubairilyas1/pretix-sqe/issues/16)). The two commits were pushed one after the other:
+* test commit `0c434e822`: run [46116198842](https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116198842),
+  Gate 1 **failed** with `1 failed, 219 passed` (`assert qa.count_waitinglist[quota] == 0`, got 1);
+* fix commit `12e0a96ae`: run [46117938901](https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46117938901),
+  Gates 1-4 **passed**. Its Gate 5 still used the single-job version and was cancelled at the 120-minute limit (see section 1); after PR #15 is merged the branch is updated so that PR #36 runs the sharded Gate 5.
+
 Locally verified: before the fix `1 failed, 1 passed`; after the fix the Area 1 suite and pretix's own `tests/base/test_models.py` pass (408 passed).
 
 ## 5. Evidence links
 | Item | Link |
 | :--- | :--- |
 | First run of the new workflow (push to `zubair`) | https://github.com/Zubairilyas1/pretix-sqe/actions/runs/45969206974 - gate 1 and gate 4 passed; gates 2 and 3 failed with pytest exit code 2 because the team's extra packages were not installed. Fixed in commit "ci(sqe): install the pinned extra packages ..." |
-| Blocked PR | _to be added_ |
-| Fix PR (red run, green run) | _to be added_ |
-| Branch protection screenshot | _to be added (real screenshot of the GitHub settings page)_ |
+| Main pull request (`zubair` into `main`) | https://github.com/Zubairilyas1/pretix-sqe/pull/15, all gates green in run https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46131379965 (44 min; Gate 5 merged 8 shards: 715/715 mutants executed, 692 killed, 23 survived, 96.78 %) |
+| Blocked PR | https://github.com/Zubairilyas1/pretix-sqe/pull/35, run https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116193890 |
+| Fix PR (red run, green run) | https://github.com/Zubairilyas1/pretix-sqe/pull/36, red https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116198842, green https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46117938901 |
+| Branch protection | required status checks on `main`: Gate 1, Gate 2, Gate 3, Gate 4, Gate 5; 1 approving review; no force pushes or deletions. The settings page is only visible to the repository admin, so the evidence is the GitHub API output (figure in chapter 7, `gh api repos/Zubairilyas1/pretix-sqe/branches/main/protection`). |
