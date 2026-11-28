@@ -5,6 +5,7 @@ any reviewer sees). Run IDs and PR numbers are read with the GitHub CLI.
     python docs/sqe/final_report/capture/capture_github.py        (from the repository root)
 """
 import json
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -30,7 +31,7 @@ def latest_run(branch, conclusion, event=None):
         if r["conclusion"] != conclusion or (event and r["event"] != event) or r["createdAt"] < "2026-11-28":
             continue
         jobs = gh_json("run", "view", str(r["databaseId"]), "-R", R, "--json", "jobs")["jobs"]
-        if sum(j["name"].startswith("Gate ") for j in jobs) == 5:
+        if sum(bool(re.match(r"Gate [1-5] - ", j["name"])) for j in jobs) == 5:
             return r["databaseId"]
     return None
 

@@ -1,0 +1,10 @@
+$ gh api repos/Zubairilyas1/pretix-sqe/actions/jobs/140947762504/logs   (run 46131379965, job 'Gate 5 - Mutation score (Cosmic Ray + custom operators)'; result lines)
+merged 8 shards: 715 of 715 mutants assigned, 0 unassigned
+$ /home/runner/work/pretix-sqe/pretix-sqe/.venv/bin/python -m cosmic_ray.tools.report mutation-results/session.sqlite --show-pending --show-diff
+  "total_mutants": 715,
+  "executed": 715,
+  "killed": 692,
+  "survived": 23,
+  "incompetent": 0,
+  "mutation_score_percent": 96.78
+MUTATION GATE PASSED: score 96.78% >= 85.0%

@@ -50,6 +50,24 @@ def failed_log(pr):
         "\n".join(keep)
 
 
+def gate5_merge():
+    """Merged Gate 5 result of the newest successful run on the zubair branch."""
+    import json
+    runs = json.loads(subprocess.run([GH, "run", "list", "-R", R, "--branch", "zubair", "-L", "20", "--json",
+                                      "databaseId,conclusion,createdAt"], capture_output=True, text=True).stdout)
+    run = next(r for r in runs if r["conclusion"] == "success" and r["createdAt"] >= "2026-11-28")
+    jobs = json.loads(subprocess.run([GH, "run", "view", str(run["databaseId"]), "-R", R, "--json", "jobs"],
+                                     capture_output=True, text=True).stdout)["jobs"]
+    job = next(j for j in jobs if j["name"].startswith("Gate 5 -"))
+    log = subprocess.run([GH, "api", "--allow-escape-sequences", f"repos/{R}/actions/jobs/{job['databaseId']}/logs"],
+                         capture_output=True, text=True, encoding="utf-8").stdout
+    keep = [re.sub(r"^\d{4}-\d\d-\d\dT[\d:.]+Z ", "", ANSI.sub("", ln)) for ln in log.splitlines()]
+    keep = [ln for ln in keep if re.search(r"merged \d+ shards|total_mutants|executed|killed|survived|pending|"
+                                           r"incompetent|score_percent|MUTATION GATE", ln)]
+    return (f"gh api repos/{R}/actions/jobs/{job['databaseId']}/logs   (run {run['databaseId']}, job '{job['name']}'; "
+            "result lines)"), "\n".join(keep)
+
+
 COMMANDS = {
     "branch_protection": ([GH, "api", f"repos/{R}/branches/main/protection", "--jq",
                            '"required status checks on main:", (.required_status_checks.checks[] | "  " + .context), '
@@ -99,8 +117,8 @@ def main(names):
         b = p.chromium.launch()
         pg = b.new_page(viewport={"width": 1600, "height": 900})
         for name in names:
-            if name == "pr35_gate1_failure":
-                cmd_text, out = failed_log(35)
+            if name in ("pr35_gate1_failure", "gate5_merge"):
+                cmd_text, out = failed_log(35) if name == "pr35_gate1_failure" else gate5_merge()
                 render(name, cmd_text, REPO, out, pg)
                 continue
             cmd, cwd = COMMANDS[name]
