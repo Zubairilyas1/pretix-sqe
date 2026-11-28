@@ -285,7 +285,7 @@ class QuotaAvailability:
                 if not quotas:
                     return
 
-            self._compute_waitinglist(quotas, q_items, q_vars, size_left)
+            self._compute_waitinglist(quotas, q_items, q_vars, size_left, now_dt)
 
         for q in quotas:
             if q not in self.results:
@@ -454,11 +454,11 @@ class QuotaAvailability:
                     if q not in self.results and size_left[q] <= 0:
                         self.results[q] = Quota.AVAILABILITY_RESERVED, 0
 
-    def _compute_waitinglist(self, quotas, q_items, q_vars, size_left):
+    def _compute_waitinglist(self, quotas, q_items, q_vars, size_left, now_dt):
         prefetch_related_objects(quotas, "event", "event__organizer")
         quotas = [
             q for q in quotas
-            if not q.event.settings.waiting_list_auto_disable or q.event.settings.waiting_list_auto_disable.datetime(q.subevent or q.event) > now()
+            if not q.event.settings.waiting_list_auto_disable or q.event.settings.waiting_list_auto_disable.datetime(q.subevent or q.event) > now_dt
         ]
 
         events = {q.event_id for q in quotas}
