@@ -11,25 +11,25 @@ Triage decisions: **Fix** (we fix it in this repository), **Report upstream** (d
 ## 1. Defects
 | ID | Title | Severity | Priority | Status | Triage | Found by (evidence) | Risk | Issue |
 | :--- | :--- | :-: | :-: | :-: | :--- | :--- | :-: | :-: |
-| D-Z01 | Waiting-list auto-disable compared with real `now()` instead of `now_dt` in `QuotaAvailability` | Minor | P2 | Fixed (PR) | Fix: pass `now_dt` to `_compute_waitinglist` | White-box review of `quotas.py` L461; `zubair/test_dz01_waitinglist_now_dt.py` | PR-WB-01 | see `github_issues/` |
-| W-01 | Negative item price accepted by `POST items/` | Major | P1 | Open | Report upstream; blocks release (EC-1 risk) | `sami/api/test_api_ep_bva.py` BVA min-1 (strict xfail) | PR-API-01 | |
-| W-02 | Negative cart-position price accepted | Major | P1 | Open | Report upstream | `test_api_ep_bva.py` (strict xfail) | PR-API-01 | |
-| W-03 | Retry without idempotency key creates a duplicate order | Major | P2 | Open | Accept for trusted clients + document header | `test_negative_rules.py` characterisation test | PR-API-02 | |
-| W-04 | Empty / over-long item name accepted | Minor | P3 | Open | Report upstream | `test_api_ep_bva.py` (strict xfail) | PR-API-03 | |
-| W-05 | Quota size above 32-bit range accepted | Major | P2 | Open | Report upstream | `test_api_ep_bva.py` (strict xfail) | PR-API-04 | |
-| W-06 | `with_availability` ignored on quota detail | Minor | P3 | Open | Accept (workaround: `/availability/`) | `test_negative_rules.py` (strict xfail) | PR-API-05 | |
-| W-07 | Order API ignores item sale window | Major | P1 | Open | Report upstream (document or enforce unless `force`) | `test_negative_rules.py` rule 2 (strict xfail) | PR-API-06 | |
-| W-08 | Order API ignores min/max per order | Major | P1 | Open | Report upstream | `test_negative_rules.py` rule 1 BVA (strict xfail) | PR-API-06 | |
-| W-09 | Negative order-position price accepted by `POST orders/` | Major | P1 | Open | Report upstream (same family as W-01) | `test_api_ep_bva.py` positions[].price BVA min-1 (strict xfail) | PR-API-01 | |
-| W-10 | `X-Idempotency-Key` longer than 190 characters accepted | Minor | P3 | Open | Report upstream | `test_api_parameters.py` header BVA len_max+1 (strict xfail) | PR-API-02 | |
-| W-11 | `attendee_name` longer than 255 characters accepted | Minor | P3 | Open | Report upstream | `test_api_ep_bva.py` positions[].attendee_name BVA len_max+1 (strict xfail) | PR-API-03 | |
-| W-12 | Order action endpoints do not validate their body (`send_email` by truthiness) | Minor | P2 | Open | Report upstream | `test_api_ep_bva.py::test_order_action_body` (strict xfail) | PR-API-07 | |
-| A3-D01 | Back office saves a negative item price | Major | P1 | Open | Report upstream (same root cause as W-01) | `tawassul/usecases` UC1-E1 (strict xfail) | PR-VAL-01 | |
-| A3-D02 | `X-Content-Type-Options` / `Referrer-Policy` not sent | Minor | P2 | Open | Fix in deployment config | `tawassul/security/test_security_headers.py`, ZAP 10021 | PR-SEC-02 | |
-| A3-D03 | Back office fails WCAG 2.1 A (lang, alt, link names) | Major | P1 | Fixed | Fixed in `pretixcontrol/base.html` (commit `dc2e75a6e`) | axe + Lighthouse before/after | PR-A11Y-01 | |
-| A3-D04 | `oauthlib 3.3.1` with known CVEs | Major | P1 | Open | Upgrade dependency | pip-audit JSON | PR-SEC-01 | |
-| A3-D05 | Bootstrap 3.4.1 end-of-life (XSS advisories) | Minor | P3 | Open | Accept (CSP mitigates), report upstream | ZAP 10003 | PR-SEC-03 | |
-| A3-D06 | Add-on price correction is a self-assignment | Major | P2 | Open | Report upstream | SonarQube S1656, `cart.py:1059-1065` | PR-CODE-01 | |
+| D-Z01 | Waiting-list auto-disable compared with real `now()` instead of `now_dt` in `QuotaAvailability` | Minor | P2 | Fix in PR [#36](https://github.com/Zubairilyas1/pretix-sqe/pull/36) | Fix: pass `now_dt` to `_compute_waitinglist` | White-box review of `quotas.py` L461; `zubair/test_dz01_waitinglist_now_dt.py` | PR-WB-01 | [#16](https://github.com/Zubairilyas1/pretix-sqe/issues/16) |
+| W-01 | Negative item price accepted by `POST items/` | Major | P1 | Open | Report upstream; blocks release (EC-1 risk) | `sami/api/test_api_ep_bva.py` BVA min-1 (strict xfail) | PR-API-01 || [#17](https://github.com/Zubairilyas1/pretix-sqe/issues/17) |
+| W-02 | Negative cart-position price accepted | Major | P1 | Open | Report upstream | `test_api_ep_bva.py` (strict xfail) | PR-API-01 || [#18](https://github.com/Zubairilyas1/pretix-sqe/issues/18) |
+| W-03 | Retry without idempotency key creates a duplicate order | Major | P2 | Open | Accept for trusted clients + document header | `test_negative_rules.py` characterisation test | PR-API-02 || [#19](https://github.com/Zubairilyas1/pretix-sqe/issues/19) |
+| W-04 | Empty / over-long item name accepted | Minor | P3 | Open | Report upstream | `test_api_ep_bva.py` (strict xfail) | PR-API-03 || [#20](https://github.com/Zubairilyas1/pretix-sqe/issues/20) |
+| W-05 | Quota size above 32-bit range accepted | Major | P2 | Open | Report upstream | `test_api_ep_bva.py` (strict xfail) | PR-API-04 || [#21](https://github.com/Zubairilyas1/pretix-sqe/issues/21) |
+| W-06 | `with_availability` ignored on quota detail | Minor | P3 | Open | Accept (workaround: `/availability/`) | `test_negative_rules.py` (strict xfail) | PR-API-05 || [#22](https://github.com/Zubairilyas1/pretix-sqe/issues/22) |
+| W-07 | Order API ignores item sale window | Major | P1 | Open | Report upstream (document or enforce unless `force`) | `test_negative_rules.py` rule 2 (strict xfail) | PR-API-06 || [#23](https://github.com/Zubairilyas1/pretix-sqe/issues/23) |
+| W-08 | Order API ignores min/max per order | Major | P1 | Open | Report upstream | `test_negative_rules.py` rule 1 BVA (strict xfail) | PR-API-06 || [#24](https://github.com/Zubairilyas1/pretix-sqe/issues/24) |
+| W-09 | Negative order-position price accepted by `POST orders/` | Major | P1 | Open | Report upstream (same family as W-01) | `test_api_ep_bva.py` positions[].price BVA min-1 (strict xfail) | PR-API-01 || [#31](https://github.com/Zubairilyas1/pretix-sqe/issues/31) |
+| W-10 | `X-Idempotency-Key` longer than 190 characters accepted | Minor | P3 | Open | Report upstream | `test_api_parameters.py` header BVA len_max+1 (strict xfail) | PR-API-02 || [#32](https://github.com/Zubairilyas1/pretix-sqe/issues/32) |
+| W-11 | `attendee_name` longer than 255 characters accepted | Minor | P3 | Open | Report upstream | `test_api_ep_bva.py` positions[].attendee_name BVA len_max+1 (strict xfail) | PR-API-03 || [#33](https://github.com/Zubairilyas1/pretix-sqe/issues/33) |
+| W-12 | Order action endpoints do not validate their body (`send_email` by truthiness) | Minor | P2 | Open | Report upstream | `test_api_ep_bva.py::test_order_action_body` (strict xfail) | PR-API-07 || [#34](https://github.com/Zubairilyas1/pretix-sqe/issues/34) |
+| A3-D01 | Back office saves a negative item price | Major | P1 | Open | Report upstream (same root cause as W-01) | `tawassul/usecases` UC1-E1 (strict xfail) | PR-VAL-01 || [#25](https://github.com/Zubairilyas1/pretix-sqe/issues/25) |
+| A3-D02 | `X-Content-Type-Options` / `Referrer-Policy` not sent | Minor | P2 | Open | Fix in deployment config | `tawassul/security/test_security_headers.py`, ZAP 10021 | PR-SEC-02 || [#26](https://github.com/Zubairilyas1/pretix-sqe/issues/26) |
+| A3-D03 | Back office fails WCAG 2.1 A (lang, alt, link names) | Major | P1 | Fixed | Fixed in `pretixcontrol/base.html` (commit `dc2e75a6e`) | axe + Lighthouse before/after | PR-A11Y-01 || [#27](https://github.com/Zubairilyas1/pretix-sqe/issues/27) |
+| A3-D04 | `oauthlib 3.3.1` with known CVEs | Major | P1 | Open | Upgrade dependency | pip-audit JSON | PR-SEC-01 || [#28](https://github.com/Zubairilyas1/pretix-sqe/issues/28) |
+| A3-D05 | Bootstrap 3.4.1 end-of-life (XSS advisories) | Minor | P3 | Open | Accept (CSP mitigates), report upstream | ZAP 10003 | PR-SEC-03 || [#29](https://github.com/Zubairilyas1/pretix-sqe/issues/29) |
+| A3-D06 | Add-on price correction is a self-assignment | Major | P2 | Open | Report upstream | SonarQube S1656, `cart.py:1059-1065` | PR-CODE-01 || [#30](https://github.com/Zubairilyas1/pretix-sqe/issues/30) |
 
 **Withdrawn:** D-01..D-08 (listed until 27 Nov 2026) had no reproduction, test or code change behind them; D-02 described
 a method `Order.transition_to()` that does not exist in pretix. They were removed (see AI-use record, correction note).

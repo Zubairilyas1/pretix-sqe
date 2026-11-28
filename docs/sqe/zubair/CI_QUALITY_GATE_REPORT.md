@@ -38,7 +38,20 @@ The change makes a quota with exactly `size` sold tickets look available (off-by
 | Gate 5 skipped (needs gate 1) | - |
 | Merge button | blocked by branch protection |
 
-Evidence: pull request link and run link: _filled in after the PR has run_ (section 5).
+**Observed on 28 Nov 2026** (pull request [#35](https://github.com/Zubairilyas1/pretix-sqe/pull/35), run
+[46116193890](https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116193890)): the defect is caught by all three
+test areas, not only by the unit tests.
+
+| Gate | Result on PR #35 |
+| :--- | :--- |
+| Gate 1 unit + coverage | **failed**: 19 failed, 199 passed |
+| Gate 2 API | **failed**: 4 failed, 486 passed, 30 xfailed |
+| Gate 3 Playwright E2E | **failed**: 1 failed, 63 passed, 4 xfailed |
+| Gate 4 SonarQube | **failed** (its coverage step runs the Area 1 tests: 19 failed) |
+| Gate 5 mutation | skipped (needs gate 1) |
+| Merge | `mergeStateStatus: BLOCKED`; branch protection on `main` requires Gates 1-5 (figures in chapter 7) |
+
+The pull request stays open and unmerged as evidence.
 
 ## 4. Documented fix through a pull request (fails before, passes after)
 Defect **D-Z01** (GitHub Issue, see defect log): `QuotaAvailability` ignored `now_dt` for the waiting-list auto-disable date.
@@ -46,12 +59,20 @@ Branch `fix/dz01-waitinglist-now-dt`:
 1. commit `test(quota): add regression test for D-Z01 ...` - adds `test_dz01_waitinglist_now_dt.py`; **gate 1 fails** (`assert 1 == 0` for the day-after-tomorrow case);
 2. commit `fix(quota): evaluate waiting-list auto-disable at now_dt (D-Z01)` - passes `now_dt` to `_compute_waitinglist`; **all gates pass**; the PR closes the issue.
 
+**Observed on 28 Nov 2026** (pull request [#36](https://github.com/Zubairilyas1/pretix-sqe/pull/36), closes issue
+[#16](https://github.com/Zubairilyas1/pretix-sqe/issues/16)). The two commits were pushed one after the other:
+* test commit `0c434e822`: run [46116198842](https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116198842),
+  Gate 1 **failed** with `1 failed, 219 passed` (`assert qa.count_waitinglist[quota] == 0`, got 1);
+* fix commit `12e0a96ae`: run [46117938901](https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46117938901),
+  Gates 1-4 **passed** (Gate 5 result in the run).
+
 Locally verified: before the fix `1 failed, 1 passed`; after the fix the Area 1 suite and pretix's own `tests/base/test_models.py` pass (408 passed).
 
 ## 5. Evidence links
 | Item | Link |
 | :--- | :--- |
 | First run of the new workflow (push to `zubair`) | https://github.com/Zubairilyas1/pretix-sqe/actions/runs/45969206974 - gate 1 and gate 4 passed; gates 2 and 3 failed with pytest exit code 2 because the team's extra packages were not installed. Fixed in commit "ci(sqe): install the pinned extra packages ..." |
-| Blocked PR | _to be added_ |
-| Fix PR (red run, green run) | _to be added_ |
-| Branch protection screenshot | _to be added (real screenshot of the GitHub settings page)_ |
+| Main pull request (`zubair` into `main`) | https://github.com/Zubairilyas1/pretix-sqe/pull/15 |
+| Blocked PR | https://github.com/Zubairilyas1/pretix-sqe/pull/35, run https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116193890 |
+| Fix PR (red run, green run) | https://github.com/Zubairilyas1/pretix-sqe/pull/36, red https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46116198842, green https://github.com/Zubairilyas1/pretix-sqe/actions/runs/46117938901 |
+| Branch protection | required status checks on `main`: Gate 1, Gate 2, Gate 3, Gate 4, Gate 5; 1 approving review; no force pushes or deletions. The settings page is only visible to the repository admin, so the evidence is the GitHub API output (figure in chapter 7, `gh api repos/Zubairilyas1/pretix-sqe/branches/main/protection`). |

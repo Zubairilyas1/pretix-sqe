@@ -1,0 +1,4 @@
+$ git shortlog -sn --no-merges c0d887738b6cd97f724b926718c55e2ae87c9901..origin/main c0d887738b6cd97f724b926718c55e2ae87c9901..zubair
+    46	Zubairilyas1
+    12	Tawassul Akbar
+    11	i243070-beep

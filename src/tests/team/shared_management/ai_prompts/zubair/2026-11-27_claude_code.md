@@ -24,3 +24,26 @@ commit history shows their own work. With prompt 4 the team asked Zubair to clos
 * Docker Desktop was paused; the user resumed it.
 * Roll numbers 24I-3142 (Zubair), 24I-3070 (Sami), 24I-3100 (Tawassul) confirmed; section letter not given.
 * The C: drive filled up during the runs; the user freed space personally (nothing was deleted by the assistant).
+
+## Session of 2026-11-28 (AI-use rows 22-24)
+
+### Prompt 5 (after pushing the branch; CI log pasted below the prompt)
+> it failed on got piush orign zubair pull request gate 3 playwright, e2b and after you fix it i will rerun the workflow so i would be fixed or not
+
+### Prompt 6
+> and for commititign and pull request what you need here my account setting where can i connect it tell me
+
+### Prompt 7
+> again gate 3 failes with a very large error
+
+### Prompt 8 (GitHub CLI login)
+> okay i have auth done it
+> logged in as i have download the gh
+
+### Prompt 9 (report and screenshots)
+> okay chat other things is that in the reprot it is not looking professioanl and clean although the contnedt is clear but there are a lot of emojis like corss tick removes there will be no emoji right and second is that there are no scrrenshots any kinds of and i want and i required each nad every kind of ss real ss like of github sonar qube lighthouse and eaxh tool i have used i have wriitrn down ad then for use case for other of pretix website so for that you haveto logged in pretxi right we requires a lot of real ss first after completrlry the previous task whcih is gate 3 plan for it like the ss which are required tell me first whcih are required i will review them if any missing i will tell u every tool everything right real screenshots asa evidnece in the reprot asl for the first page nmade a clean named and my sections is b and ade table of content and clean the document or report also i hope you have get me what i am trying to say first complete the repvious task thne this right also when you reprot issues in gituhub of pretix issues reprot there nas also ss of them also right
+
+### Prompt 10 (plan approved)
+> approved and i,m going out for somework so on the way back i hope you all this like report, issues and all things whcih are left right have you need any access
+
+Answers recorded: section B; issues filed in the team repository only (not upstream pretix); pull requests are merged by the team, not by the assistant.

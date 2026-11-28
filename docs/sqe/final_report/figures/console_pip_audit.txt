@@ -1,0 +1,14 @@
+$ uvx pip-audit==2.9.0 --progress-spinner off --no-deps --disable-pip -r docs/sqe/final_report/evidence_html/venv_freeze.txt
+Name     Version ID                  Fix Versions
+-------- ------- ------------------- ------------
+oauthlib 3.3.1   PYSEC-2026-4114     4.0.0
+oauthlib 3.3.1   GHSA-3jp2-3mrg-2vxc 4.0.1
+
+Downloading pygments (1.2MiB)
+Downloading pip (1.9MiB)
+ Downloaded pygments
+ Downloaded pip
+Installed 27 packages in 765ms
+WARNING:pip_audit._cli:--no-deps is supported, but users are encouraged to fully hash their pinned dependencies
+WARNING:pip_audit._cli:Consider using a tool like `pip-compile`: https://pip-tools.readthedocs.io/en/latest/#using-hashes
+Found 2 known vulnerabilities in 1 package

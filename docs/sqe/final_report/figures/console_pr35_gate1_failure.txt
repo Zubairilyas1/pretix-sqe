@@ -1,0 +1,21 @@
+$ gh run view 46116193890 -R Zubairilyas1/pretix-sqe --log-failed   (Gate 1 job: failing tests and summary)
+FAILED  test_mcc_q5_orders_verdict[Q5-1]
+FAILED  test_quota_sold_out_by_pending_orders_is_closed
+FAILED  TestAllowedTransitions.test_t2_pending_to_expired_releases_capacity
+FAILED  TestAllowedTransitions.test_t4_paid_to_canceled
+FAILED  TestDisallowedTransitions.test_x3_expired_to_paid_rejected_when_quota_gone
+FAILED  TestOrdersBoundary.test_paid_orders_bva[5-expected1]
+FAILED  TestOrdersBoundary.test_pending_orders_reaching_limit_are_ordered_not_gone
+FAILED  TestOrdersBoundary.test_paid_counted_before_pending
+FAILED  TestOrdersBoundary.test_variation_order_counts_against_variation_quota
+FAILED  TestSubevents.test_orders_only_count_for_their_date
+FAILED  TestVouchers.test_voucher_after_quota_already_decided
+FAILED  TestCartsBR4.test_cart_after_quota_already_decided
+FAILED  TestWaitingList.test_waitinglist_after_quota_already_decided
+FAILED  TestComputeShortCircuits.test_return_after_orders
+FAILED  TestSignalAndClose.test_close_when_sold_out[True-False-5-True]
+FAILED  TestSignalAndClose.test_close_when_sold_out[False-False-5-False]
+FAILED  TestWhiteboxOrderStateRules.test_expired_order_late_payment_rejected_when_sold_out
+FAILED  TestWhiteboxQuotaRules.test_quota_exact_capacity_reached
+FAILED  TestWhiteboxQuotaRules.test_quota_shared_across_multiple_items
+19 failed, 199 passed in 95.30s (0:01:35)
