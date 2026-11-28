@@ -23,9 +23,16 @@ def gh_json(*args):
 
 
 def latest_run(branch, conclusion, event=None):
+    """Newest finished run of the current five-gate workflow (runs before 28 Nov used an older workflow)."""
     runs = gh_json("run", "list", "-R", R, "--branch", branch, "-L", "30",
-                   "--json", "databaseId,conclusion,event,status")
-    return next(r["databaseId"] for r in runs if r["conclusion"] == conclusion and (event is None or r["event"] == event))
+                   "--json", "databaseId,conclusion,event,status,createdAt")
+    for r in runs:
+        if r["conclusion"] != conclusion or (event and r["event"] != event) or r["createdAt"] < "2026-11-28":
+            continue
+        jobs = gh_json("run", "view", str(r["databaseId"]), "-R", R, "--json", "jobs")["jobs"]
+        if sum(j["name"].startswith("Gate ") for j in jobs) == 5:
+            return r["databaseId"]
+    return None
 
 
 def main():
@@ -51,16 +58,20 @@ def main():
         ("gh_14_workflow_file", f"{URL}/blob/zubair/.github/workflows/sqe_quality_gate.yml", False),
     ]
     for r in fix_runs:
-        pages.append((f"gh_15_fix_run_{r['conclusion']}", f"{URL}/actions/runs/{r['databaseId']}", True))
+        if r["conclusion"]:                                     # finished runs only
+            pages.append((f"gh_15_fix_run_{r['conclusion']}", f"{URL}/actions/runs/{r['databaseId']}", True))
+    pages = [pg_ for pg_ in pages if "/runs/None" not in pg_[1]]   # runs that have not finished yet
     with sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page(viewport={"width": 1366, "height": 900}, locale="en-US")
         for name, url, full in pages:
-            pg.goto(url)
-            pg.wait_for_load_state("networkidle")
-            time.sleep(2)
-            pg.screenshot(path=str(FIG / f"{name}.png"), full_page=full)
-            print("saved", name, url)
+            try:
+                pg.goto(url, wait_until="load", timeout=60_000)   # GitHub keeps live connections open
+                time.sleep(4)
+                pg.screenshot(path=str(FIG / f"{name}.png"), full_page=full)
+                print("saved", name, url)
+            except Exception as e:
+                print("FAILED", name, url, e)
         b.close()
 
 

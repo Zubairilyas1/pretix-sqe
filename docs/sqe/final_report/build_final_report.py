@@ -69,6 +69,7 @@ body { font-family: 'Times New Roman', Georgia, serif; font-size: 10.5pt; line-h
 .cover table { width: 72%; margin: 0 auto; font-size: 11.5pt; border-collapse: collapse; }
 .cover td, .cover th { border: none; border-bottom: 0.6px solid #bbb; padding: 5px 8px; text-align: left; min-width: 0; }
 .cover th { background: none; font-weight: bold; }
+.cover td:nth-child(-n+2), .cover th:nth-child(-n+2) { white-space: nowrap; overflow-wrap: normal; }
 .cover .meta { font-size: 10pt; color: #333; line-height: 1.6; }
 .front h1 { font-size: 17pt; border-bottom: 1.5px solid #222; padding-bottom: 4px; page-break-before: always; }
 .toc { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
@@ -168,7 +169,7 @@ def build_html(rolls, section, pages=None):
 <div class="sub">pretix (event ticketing): ticket capacity and order workflows</div>
 <div class="sub">Final Project Report</div><div class="rule"></div>
 <table><tr><th>Member</th><th>Roll number</th><th>Owned area</th></tr>{members}</table></div>
-<div class="meta">Section {section}<br>Public repository: https://github.com/Zubairilyas1/pretix-sqe<br>
+<div class="meta">Public repository: https://github.com/Zubairilyas1/pretix-sqe<br>
 Upstream: https://github.com/pretix/pretix &middot; baseline commit c0d887738b6cd97f724b926718c55e2ae87c9901<br>
 Report built on {repl['BUILD_DATE']} from repository commit {repl['BUILD_COMMIT']}</div></div>"""
     front = (f'<div class="front"><h1 style="page-break-before:avoid">Table of contents</h1>'
